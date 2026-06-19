@@ -1807,7 +1807,7 @@ async function allocate(uid, committee) {
 const delegateId = localStorage.getItem("delegateId");
 
 if (!delegateId) {
-  window.location.href = "login.html";
+  window.location.href = "index.html";
 }
 
 const snap = await getDoc(
@@ -1816,7 +1816,7 @@ const snap = await getDoc(
 
 if (!snap.exists()) {
   alert("Delegate record not found");
-  window.location.href = "login.html";
+  window.location.href = "index.html";
 }
 
 const d = snap.data();
