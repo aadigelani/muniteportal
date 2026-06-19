@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>MUNITE — Delegate Access</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#09090B;
+  --surface:#0F0E12;
+  --deep-purple:#4C1D95;
+  --rich-purple:#6D28D9;
+  --primary:#7C3AED;
+  --gold:#D4AF37;
+  --champagne:#E7C873;
+  --ivory:#F8F4EA;
+  --stone:#B8B3A8;
+  --text:#F8F4EA;
+  --muted:#B8B3A8;
+  --danger:#C0392B;
+  --success:#2E7D4F;
+}
+html,body{
+  height:100%;background:var(--bg);color:var(--text);
+  font-family:'Didact Gothic','Gill Sans','Optima','Trebuchet MS','Palatino Linotype',Georgia,serif;
+  overflow:hidden;-webkit-font-smoothing:antialiased;
+}
+
+/* ── CANVAS WORLD ── */
+#world{position:fixed;inset:0;z-index:0;}
+
+/* ── ARCHITECTURAL VIGNETTE ── */
+.vignette{
+  position:fixed;inset:0;z-index:2;pointer-events:none;
+  background:radial-gradient(ellipse 75% 75% at 50% 50%,transparent 30%,rgba(9,9,11,0.65) 100%);
+}
+
+/* ── AMBIENT LIGHT ── */
+.ambient{position:fixed;inset:0;pointer-events:none;z-index:1;}
+.orb{position:absolute;border-radius:50%;filter:blur(120px);animation:drift 28s ease-in-out infinite alternate;}
+.o1{width:600px;height:600px;background:#4C1D95;opacity:0.09;top:-180px;left:-180px;animation-delay:0s;}
+.o2{width:420px;height:420px;background:#6D28D9;opacity:0.06;bottom:-120px;right:-80px;animation-delay:-10s;}
+.o3{width:280px;height:280px;background:#D4AF37;opacity:0.025;top:35%;left:30%;animation-delay:-18s;}
+@keyframes drift{from{transform:translate(0,0) scale(1);}to{transform:translate(40px,30px) scale(1.08);}}
+
+/* ── UI LAYER ── */
+.ui{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;pointer-events:none;}
+
+/* ── TOP BAR ── */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:22px 32px;pointer-events:auto;
+}
+.logo{display:flex;align-items:center;gap:14px;}
+.logo-crest{
+  width:38px;height:38px;
+  border:1px solid rgba(212,175,55,0.45);
+  display:flex;align-items:center;justify-content:center;
+  position:relative;
+}
+.logo-crest::before{
+  content:'';position:absolute;inset:3px;
+  border:1px solid rgba(212,175,55,0.2);
+}
+.logo-crest-inner{
+  font-size:11px;font-weight:400;color:var(--gold);
+  letter-spacing:0.12em;font-style:italic;
+}
+.logo-wordmark{display:flex;flex-direction:column;gap:1px;}
+.logo-name{
+  font-size:16px;font-weight:400;letter-spacing:0.28em;
+  text-transform:uppercase;color:var(--ivory);
+  font-family:'Palatino Linotype','Palatino','Book Antiqua',Georgia,serif;
+}
+.logo-tagline{
+  font-size:9px;color:rgba(184,179,168,0.55);
+  letter-spacing:0.22em;text-transform:uppercase;
+  font-family:'Gill Sans','Optima','Trebuchet MS',sans-serif;
+}
+
+.topbar-right{display:flex;align-items:center;gap:20px;}
+.status-mark{
+  display:flex;align-items:center;gap:7px;
+  font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;
+  color:rgba(184,179,168,0.45);
+  font-family:'Gill Sans','Optima','Trebuchet MS',sans-serif;
+}
+.status-dot{width:5px;height:5px;border-radius:50%;background:var(--gold);opacity:0.7;animation:pulse-soft 4s ease-in-out infinite;}
+@keyframes pulse-soft{0%,100%{opacity:0.5;}50%{opacity:0.9;}}
+.session-info{
+  font-size:9.5px;color:rgba(184,179,168,0.3);
+  letter-spacing:0.14em;
+  font-family:'Gill Sans','Optima','Trebuchet MS',sans-serif;
+}
+
+/* ── CENTER STAGE ── */
+.center{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  padding:0 20px;pointer-events:auto;
+}
+
+/* ── VERIFY PANEL ── */
+.verify-panel{
+  width:100%;max-width:368px;
+  display:flex;flex-direction:column;align-items:center;
+}
+
+/* STEP INDICATOR */
+.steps{display:flex;align-items:center;gap:0;margin-bottom:32px;}
+.step-node{display:flex;flex-direction:column;align-items:center;gap:5px;}
+.step-circle{
+  width:26px;height:26px;
+  border:1px solid rgba(212,175,55,0.2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:400;color:rgba(184,179,168,0.3);
+  letter-spacing:0.05em;
+  transition:all 0.5s ease;position:relative;
+  font-family:'Palatino Linotype','Palatino',Georgia,serif;
+  font-style:italic;
+}
+.step-circle.active{
+  border-color:rgba(212,175,55,0.65);color:var(--champagne);
+}
+.step-circle.done{
+  border-color:rgba(212,175,55,0.5);color:var(--gold);
+}
+.step-label{
+  font-size:8.5px;letter-spacing:0.18em;text-transform:uppercase;
+  color:rgba(184,179,168,0.3);
+  font-family:'Gill Sans','Optima','Trebuchet MS',sans-serif;
+  transition:color 0.5s;
+}
+.step-label.active{color:rgba(212,175,55,0.6);}
+.step-line{
+  width:44px;height:1px;
+  background:rgba(212,175,55,0.12);
+  margin-bottom:16px;
+  transition:background 0.5s;
+}
+.step-line.done{background:rgba(212,175,55,0.35);}
+
+/* PANEL BODY */
+.panel-body{
+  width:100%;
+  background:rgba(12,11,15,0.82);
+  backdrop-filter:blur(28px) saturate(1.1);
+  -webkit-backdrop-filter:blur(28px) saturate(1.1);
+  border:1px solid rgba(212,175,55,0.14);
+  padding:32px 28px 28px;
+  position:relative;overflow:hidden;
+}
+.panel-body::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent 5%,rgba(212,175,55,0.35) 40%,rgba(212,175,55,0.35) 60%,transparent 95%);
+}
+.panel-body::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent 20%,rgba(212,175,55,0.1) 50%,transparent 80%);
+}
+/* Corner ornaments */
+.corner{position:absolute;width:14px;height:14px;}
+.corner-tl{top:5px;left:5px;border-top:1px solid rgba(212,175,55,0.3);border-left:1px solid rgba(212,175,55,0.3);}
+.corner-tr{top:5px;right:5px;border-top:1px solid rgba(212,175,55,0.3);border-right:1px solid rgba(212,175,55,0.3);}
+.corner-bl{bottom:5px;left:5px;border-bottom:1px solid rgba(212,175,55,0.3);border-left:1px solid rgba(212,175,55,0.3);}
+.corner-br{bottom:5px;right:5px;border-bottom:1px solid rgba(212,175,55,0.3);border-right:1px solid rgba(212,175,55,0.3);}
+
+.panel-eyebrow{
+  font-size:9px;letter-spacing:0.3em;text-transform:uppercase;
+  color:rgba(212,175,55,0.55);margin-bottom:8px;
+  font-family:'Gill Sans','Optima','Trebuchet MS',sans-serif;
+}
+.step-title{
+  font-size:22px;font-weight:400;color:var(--ivory);
+  letter-spacing:0.04em;margin-bottom:6px;
+  font-family:'Palatino Linotype','Palatino','Book Antiqua',Georgia,serif;
+  line-height:1.2;
+}
+.step-desc{
+  font-size:11.5px;color:rgba(184,179,168,0.5);
+  margin-bottom:24px;line-height:1.7;
+  letter-spacing:0.03em;
+  font-family:'Gill Sans','Optima','Trebuchet MS',sans-serif;
+  border-left:2px solid rgba(212,175,55,0.18);
+  padding-left:10px;
+}
+
+/* FIELD */
+.field{margin-bottom:16px;}
+.field-label{
+  font-size:9px;font-weight:400;letter-spacing:0.22em;text-transform:uppercase;
+  color:rgba(184,179,168,0.45);margin-bottom:8px;
+  font-family:'Gill Sans','Optima','Trebuchet MS',sans-serif;
+}
+.field-input{
+  width:100%;padding:12px 14px;
+  background:rgba(255,255,255,0.025);
+  border:1px solid rgba(212,175,55,0.15);
+  color:var(--ivory);font-size:15px;font-family:'Palatino Linotype','Palatino',Georgia,serif;
+  outline:none;
+  transition:border-color 0.3s,background 0.3s;
+  letter-spacing:0.06em;
+  -webkit-appearance:none;border-radius:0;
+}
+.field-input::placeholder{color:rgba(184,179,168,0.2);letter-spacing:0.08em;}
+.field-input:focus{
+  border-color:rgba(212,175,55,0.45);
+  background:rgba(212,175,55,0.03);
+}
+.field-input.error{border-color:rgba(192,57,43,0.5);}
+
+/* DATE ROW */
+.date-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+
+/* ACTION BTN */
+.action-btn{
+  width:100%;margin-top:22px;padding:14px;
+  background:transparent;
+  border:1px solid rgba(212,175,55,0.5);
+  color:var(--champagne);font-size:11px;font-family:'Gill Sans','Optima','Trebuchet MS',sans-serif;
+  cursor:pointer;letter-spacing:0.3em;text-transform:uppercase;
+  transition:background 0.3s,border-color 0.3s,color 0.3s;
+  position:relative;overflow:hidden;
+}
+.action-btn::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(212,175,55,0.06),transparent);
+  transform:translateX(-100%);
+  transition:transform 0.8s ease;
+}
+.action-btn:hover::before{transform:translateX(100%);}
+.action-btn:hover{
+  border-color:rgba(212,175,55,0.8);
+  background:rgba(212,175,55,0.06);
+  color:var(--ivory);
+}
+.action-btn:active{opacity:0.85;}
+.action-btn:disabled{opacity:0.35;cursor:not-allowed;}
+
+/* BACK LINK */
+.back-link{
+  text-align:center;margin-top:16px;
+  font-size:9.5px;color:rgba(184,179,168,0.3);
+  letter-spacing:0.18em;text-transform:uppercase;
+  cursor:pointer;transition:color 0.3s;
+  font-family:'Gill Sans','Optima','Trebuchet MS',sans-serif;
+}
+.back-link:hover{color:rgba(184,179,168,0.6);}
+
+/* ERROR STATE */
+.error-msg{
+  margin-top:12px;padding:10px 12px;
+  border:1px solid rgba(192,57,43,0.25);
+  font-size:11px;color:rgba(220,150,140,0.8);
+  display:none;align-items:flex-start;gap:8px;line-height:1.6;
+  letter-spacing:0.02em;
+  font-family:'Gill Sans','Optima','Trebuchet MS',sans-serif;
+}
+.error-msg.show{display:flex;}
+.error-icon{flex-shrink:0;margin-top:1px;}
+
+/* ── ACCESS GRANTED OVERLAY ── */
+#accessOverlay{
+  position:fixed;inset:0;z-index:999;
+  background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:0;
+  opacity:0;pointer-events:none;
+  transition:opacity 0.8s ease;
+}
+#accessOverlay.show{opacity:1;pointer-events:auto;}
+
+/* Crest emblem for access screen */
+.access-emblem{
+  width:90px;height:90px;
+  border:1px solid rgba(212,175,55,0.35);
+  display:flex;align-items:center;justify-content:center;
+  position:relative;margin-bottom:36px;
+}
+.access-emblem::before{
+  content:'';position:absolute;inset:5px;
+  border:1px solid rgba(212,175,55,0.15);
+}
+.access-emblem::after{
+  content:'';position:absolute;inset:-6px;
+  border:1px solid rgba(212,175,55,0.08);
+}
+.access-inner{
+  width:56px;height:56px;
+  display:flex;align-items:center;justify-content:center;
+}
+.access-check{
+  width:24px;height:24px;stroke:rgba(212,175,55,0.9);stroke-width:1.5;fill:none;
+  stroke-dasharray:40;stroke-dashoffset:40;
+  transition:stroke-dashoffset 0.8s ease 0.4s;
+}
+#accessOverlay.show .access-check{stroke-dashoffset:0;}
+
+/* Gold line reveal */
+.access-divider{
+  width:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(212,175,55,0.5),transparent);
+  margin:20px 0 28px;
+  transition:width 1.2s ease 0.6s;
+}
+#accessOverlay.show .access-divider{width:160px;}
+
+.access-lines{display:flex;flex-direction:column;align-items:center;gap:8px;}
+.access-line{
+  font-size:10px;letter-spacing:0.3em;text-transform:uppercase;
+  color:rgba(184,179,168,0.4);opacity:0;transform:translateY(8px);
+  transition:opacity 0.6s ease,transform 0.6s ease;
+  font-family:'Gill Sans','Optima','Trebuchet MS',sans-serif;
+}
+.access-line.primary{
+  font-size:26px;font-weight:400;
+  color:var(--ivory);letter-spacing:0.06em;
+  text-transform:none;
+  font-family:'Palatino Linotype','Palatino','Book Antiqua',Georgia,serif;
+}
+.access-line.gold{color:rgba(212,175,55,0.7);font-size:10.5px;letter-spacing:0.24em;}
+#accessOverlay.show .access-line:nth-child(1){opacity:1;transform:none;transition-delay:0.1s;}
+#accessOverlay.show .access-line:nth-child(2){opacity:1;transform:none;transition-delay:0.5s;}
+#accessOverlay.show .access-line:nth-child(3){opacity:1;transform:none;transition-delay:0.9s;}
+#accessOverlay.show .access-line:nth-child(4){opacity:1;transform:none;transition-delay:1.3s;}
+
+.access-bar-wrap{
+  margin-top:36px;width:160px;height:1px;
+  background:rgba(255,255,255,0.04);
+}
+.access-bar{
+  height:100%;
+  background:linear-gradient(90deg,transparent,var(--gold),rgba(212,175,55,0.5));
+  width:0%;
+  transition:width 2s ease 0.8s;
+}
+#accessOverlay.show .access-bar{width:100%;}
+
+/* ── BOTTOM STRIP ── */
+.bottom{
+  padding:16px 32px;display:flex;align-items:center;justify-content:space-between;
+  pointer-events:auto;
+}
+.bottom-left{
+  font-size:9px;color:rgba(184,179,168,0.25);
+  letter-spacing:0.18em;text-transform:uppercase;
+  font-family:'Gill Sans','Optima','Trebuchet MS',sans-serif;
+}
+.coord-stream{
+  font-size:9px;color:rgba(184,179,168,0.18);
+  font-variant-numeric:tabular-nums;letter-spacing:0.12em;
+  font-family:'Gill Sans','Optima','Trebuchet MS',sans-serif;
+}
+
+/* ── MOBILE ── */
+@media(max-width:480px){
+  .topbar{padding:16px 20px;}
+  .session-info{display:none;}
+  .center{padding:0 16px;align-items:flex-end;padding-bottom:24px;}
+  .panel-body{padding:26px 20px 22px;}
+  .step-line{width:30px;}
+  .bottom{padding:12px 20px;}
+}
+@media(min-width:640px){
+  .center{align-items:center;}
+}
+</style>
+</head>
+<body>
+
+<!-- WORLD CANVAS -->
+<canvas id="world"></canvas>
+
+<!-- AMBIENT -->
+<div class="ambient">
+  <div class="orb o1"></div>
+  <div class="orb o2"></div>
+  <div class="orb o3"></div>
+</div>
+
+<!-- EFFECTS -->
+<div class="vignette"></div>
+
+<!-- UI -->
+<div class="ui">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="logo">
+      <div class="logo-crest"><div class="logo-crest-inner">M</div></div>
+      <div class="logo-wordmark">
+        <div class="logo-name">MUNITE</div>
+        <div class="logo-tagline">International Delegate Registry</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="status-mark"><div class="status-dot"></div>Registry Active</div>
+      <div class="session-info" id="coordDisplay">28.6139°N · 77.2090°E</div>
+    </div>
+  </div>
+
+  <!-- CENTER: VERIFICATION FORM -->
+  <div class="center">
+    <div class="verify-panel">
+
+      <!-- STEP INDICATOR -->
+      <div class="steps">
+        <div class="step-node">
+          <div class="step-circle active" id="sc1"><span style="font-style:normal;font-size:9px;letter-spacing:0.05em;">I</span></div>
+          <div class="step-label active" id="sl1">Identity</div>
+        </div>
+        <div class="step-line" id="line1"></div>
+        <div class="step-node">
+          <div class="step-circle" id="sc2"><span style="font-style:normal;font-size:9px;letter-spacing:0.05em;">II</span></div>
+          <div class="step-label" id="sl2">Credentials</div>
+        </div>
+        <div class="step-line" id="line2"></div>
+        <div class="step-node">
+          <div class="step-circle" id="sc3"><span style="font-style:normal;font-size:9px;letter-spacing:0.05em;">III</span></div>
+          <div class="step-label" id="sl3">Access</div>
+        </div>
+      </div>
+
+      <!-- PANEL BODY -->
+      <div class="panel-body">
+        <div class="corner corner-tl"></div>
+        <div class="corner corner-tr"></div>
+        <div class="corner corner-bl"></div>
+        <div class="corner corner-br"></div>
+
+        <!-- STEP 1: DELEGATE ID (PHONE) -->
+        <div id="step1">
+          <div class="panel-eyebrow">Delegate Registry</div>
+          <div class="step-title">Identify Your Delegation</div>
+          <div class="step-desc">Present the mobile number by which your credentials are registered with the secretariat.</div>
+
+          <div class="field">
+            <div class="field-label">Registered Delegate Number</div>
+            <input class="field-input" id="phoneInput" type="tel" inputmode="numeric"
+              placeholder="+91 00000 00000" maxlength="15"
+              onkeydown="if(event.key==='Enter')goStep2()">
+          </div>
+
+          <div class="error-msg" id="err1">
+            <svg class="error-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(220,150,140,0.7)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span id="err1msg">Please enter a valid phone number.</span>
+          </div>
+
+          <button class="action-btn" onclick="goStep2()">
+            Proceed to Verification
+          </button>
+        </div>
+
+        <!-- STEP 2: DOB VERIFY -->
+        <div id="step2" style="display:none;">
+          <div class="panel-eyebrow">Credential Authentication</div>
+          <div class="step-title">Confirm Your Identity</div>
+          <div class="step-desc">Your date of birth is required to authenticate your delegate credentials against the official registry.</div>
+
+          <div class="field">
+            <div class="field-label">Date of Birth</div>
+            <div class="date-row">
+              <input class="field-input" id="dobDay" type="text" inputmode="numeric"
+                placeholder="DD" maxlength="2" oninput="autoTab(this,'dobMonth',2)">
+              <input class="field-input" id="dobMonth" type="text" inputmode="numeric"
+                placeholder="MM" maxlength="2" oninput="autoTab(this,'dobYear',2)">
+              <input class="field-input" id="dobYear" type="text" inputmode="numeric"
+                placeholder="YYYY" maxlength="4" onkeydown="if(event.key==='Enter')doLogin()">
+            </div>
+          </div>
+
+          <div class="error-msg" id="err2">
+            <svg class="error-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(220,150,140,0.7)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span id="err2msg">Delegate not found. Check your credentials.</span>
+          </div>
+
+          <button class="action-btn" id="loginBtn" onclick="doLogin()">
+            Authenticate Credentials
+          </button>
+
+          <div class="back-link" onclick="goBack()">← Return to identification</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM -->
+  <div class="bottom">
+    <div class="bottom-left">MUNITE 2025 · Private Delegate Network</div>
+    <div class="coord-stream" id="coordStream">Registry · Secure · Encrypted</div>
+  </div>
+
+</div>
+
+<!-- ACCESS GRANTED OVERLAY -->
+<div id="accessOverlay">
+  <div class="access-emblem">
+    <div class="access-inner">
+      <svg class="access-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+  </div>
+  <div class="access-divider"></div>
+  <div class="access-lines">
+    <div class="access-line">Credentials Verified</div>
+    <div class="access-line primary" id="accessName">Welcome, Delegate</div>
+    <div class="access-line gold" id="accessCommittee">Loading assignment…</div>
+    <div class="access-line">Entering the Registry</div>
+  </div>
+  <div class="access-bar-wrap">
+    <div class="access-bar" id="accessBar"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     FIREBASE SDK
+     PASTE YOUR FIREBASE CONFIG HERE
+     ════════════════════════════════════════════════════════ -->
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCeEFqHujlHHAkr8Bq7uOG8CTXYY1Vfd60",
+    authDomain: "munite-acf5d.firebaseapp.com",
+    projectId: "munite-acf5d",
+    storageBucket: "munite-acf5d.firebasestorage.app",
+    messagingSenderId: "785242774756",
+    appId: "1:785242774756:web:2aea5a47dd93d9fbd260f1"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  window._db = db;
+  window._firestoreDoc = doc;
+  window._firestoreGetDoc = getDoc;
+</script>
+<script>
+// ════════════════════════════════════════════════════════
+// WORLD NETWORK CANVAS — Ceremonial Globe
+// ════════════════════════════════════════════════════════
+const canvas = document.getElementById('world');
+const ctx = canvas.getContext('2d');
+let W, H;
+
+function resize(){
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+const GLOBE_R = () => Math.min(W, H) * 0.38;
+const CX = () => W * 0.5;
+const CY = () => H * 0.5;
+let globeAngle = 0;
+
+const CITIES = [
+  {name:'New York',lat:40.71,lon:-74.00},
+  {name:'London',lat:51.51,lon:-0.13},
+  {name:'Paris',lat:48.85,lon:2.35},
+  {name:'Berlin',lat:52.52,lon:13.40},
+  {name:'Moscow',lat:55.75,lon:37.62},
+  {name:'Dubai',lat:25.20,lon:55.27},
+  {name:'Mumbai',lat:19.08,lon:72.88},
+  {name:'Delhi',lat:28.61,lon:77.21},
+  {name:'Singapore',lat:1.35,lon:103.82},
+  {name:'Tokyo',lat:35.68,lon:139.69},
+  {name:'Beijing',lat:39.90,lon:116.41},
+  {name:'Sydney',lat:-33.87,lon:151.21},
+  {name:'Nairobi',lat:-1.29,lon:36.82},
+  {name:'Cairo',lat:30.04,lon:31.24},
+  {name:'São Paulo',lat:-23.55,lon:-46.63},
+  {name:'Washington',lat:38.90,lon:-77.04},
+  {name:'Brussels',lat:50.85,lon:4.35},
+  {name:'Geneva',lat:46.20,lon:6.15},
+  {name:'Vienna',lat:48.21,lon:16.37},
+  {name:'Ottawa',lat:45.42,lon:-75.69},
+];
+
+const ROUTES = [
+  [0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[8,9],
+  [9,10],[1,12],[12,13],[0,14],[0,16],[1,16],[16,17],[17,18],
+  [4,7],[5,7],[1,13],[7,9],[6,8],[2,17],[3,18],[0,19],[19,3]
+];
+
+function toXY(lat, lon, angle, cx, cy, R){
+  const φ = lat * Math.PI / 180;
+  const λ = (lon * Math.PI / 180) + angle;
+  const x = Math.cos(φ) * Math.sin(λ);
+  const y = Math.sin(φ);
+  const z = Math.cos(φ) * Math.cos(λ);
+  return { x: cx + x * R, y: cy - y * R, z };
+}
+
+const packets = [];
+function spawnPacket(){
+  const ri = Math.floor(Math.random() * ROUTES.length);
+  // Slower, more deliberate movement
+  packets.push({ route: ri, t: 0, speed: 0.0018 + Math.random() * 0.0012 });
+}
+for(let i = 0; i < 6; i++) setTimeout(()=>spawnPacket(), i * 1200);
+setInterval(spawnPacket, 2200);
+
+function lerp(a, b, t){ return a + (b - a) * t; }
+
+// Longitude / latitude grid lines (not dots — architectural feel)
+const latLines = [];
+for(let lat = -75; lat <= 75; lat += 15) latLines.push(lat);
+const lonLines = [];
+for(let lon = 0; lon < 360; lon += 20) lonLines.push(lon);
+
+// Sparse dots for subtle texture
+const gridDots = [];
+for(let lat = -80; lat <= 80; lat += 20){
+  for(let lon = 0; lon < 360; lon += 20){
+    gridDots.push({ lat, lon });
+  }
+}
+
+function drawWorld(){
+  ctx.clearRect(0, 0, W, H);
+  const cx = CX(), cy = CY(), R = GLOBE_R();
+  // Slower rotation — ceremonial, not technological
+  globeAngle += 0.0008;
+
+  // Globe fill — deep chamber dark
+  const grd = ctx.createRadialGradient(cx - R*0.15, cy - R*0.25, R*0.05, cx, cy, R);
+  grd.addColorStop(0, 'rgba(22,14,38,0.92)');
+  grd.addColorStop(0.55, 'rgba(14,10,24,0.88)');
+  grd.addColorStop(1, 'rgba(9,9,11,0.75)');
+  ctx.beginPath();
+  ctx.arc(cx, cy, R, 0, Math.PI * 2);
+  ctx.fillStyle = grd;
+  ctx.fill();
+
+  // Outer ring — gold, restrained
+  ctx.beginPath();
+  ctx.arc(cx, cy, R, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(212,175,55,0.18)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Second outer ring — very subtle
+  ctx.beginPath();
+  ctx.arc(cx, cy, R + 6, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(212,175,55,0.05)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Soft gold halo — like candlelight
+  const halo = ctx.createRadialGradient(cx, cy, R * 0.85, cx, cy, R * 1.18);
+  halo.addColorStop(0, 'rgba(76,29,149,0.06)');
+  halo.addColorStop(0.5, 'rgba(212,175,55,0.03)');
+  halo.addColorStop(1, 'rgba(9,9,11,0)');
+  ctx.beginPath();
+  ctx.arc(cx, cy, R * 1.18, 0, Math.PI * 2);
+  ctx.fillStyle = halo;
+  ctx.fill();
+
+  // Latitude lines — elegant gold filigree
+  latLines.forEach(lat => {
+    const φ = lat * Math.PI / 180;
+    const r2d = Math.cos(φ) * R;
+    const yLine = cy - Math.sin(φ) * R;
+    const zDepth = Math.cos(φ);
+    if(zDepth < 0.05) return;
+    const alpha = zDepth * 0.12;
+    ctx.save();
+    ctx.beginPath();
+    ctx.ellipse(cx, yLine, r2d, r2d * 0.08, 0, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(212,175,55,${alpha})`;
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+    ctx.restore();
+  });
+
+  // Longitude meridian lines
+  lonLines.forEach(lon => {
+    const pts = [];
+    for(let lat2 = -85; lat2 <= 85; lat2 += 4){
+      const p = toXY(lat2, lon, globeAngle, cx, cy, R);
+      if(p.z > 0) pts.push(p);
+    }
+    if(pts.length < 2) return;
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for(let k = 1; k < pts.length; k++) ctx.lineTo(pts[k].x, pts[k].y);
+    ctx.strokeStyle = `rgba(212,175,55,0.06)`;
+    ctx.lineWidth = 0.4;
+    ctx.stroke();
+  });
+
+  // Diplomatic routes — ivory/gold arcs
+  ROUTES.forEach(pair => {
+    const A = toXY(CITIES[pair[0]].lat, CITIES[pair[0]].lon, globeAngle, cx, cy, R);
+    const B = toXY(CITIES[pair[1]].lat, CITIES[pair[1]].lon, globeAngle, cx, cy, R);
+    if(A.z < -0.1 && B.z < -0.1) return;
+    const alpha = Math.max(0, Math.min(A.z, B.z)) * 0.38;
+    ctx.beginPath();
+    ctx.moveTo(A.x, A.y);
+    const mx = (A.x + B.x) / 2, my = (A.y + B.y) / 2;
+    const dist = Math.hypot(B.x - A.x, B.y - A.y);
+    ctx.quadraticCurveTo(mx, my - dist * 0.16, B.x, B.y);
+    ctx.strokeStyle = `rgba(212,175,55,${alpha * 0.45})`;
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+  });
+
+  // City nodes — small gold diamond marks
+  const projCities = CITIES.map(c => toXY(c.lat, c.lon, globeAngle, cx, cy, R));
+  projCities.forEach(p => {
+    if(p.z < 0) return;
+    const a = p.z;
+    // Simple cross mark
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 1.5, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(231,200,115,${a * 0.8})`;
+    ctx.fill();
+    // Outer ring
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 3.5, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(212,175,55,${a * 0.25})`;
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+  });
+
+  // Diplomatic packets — moving along routes, refined
+  packets.forEach((pk, idx) => {
+    pk.t += pk.speed;
+    if(pk.t > 1){ packets.splice(idx, 1); return; }
+    const pair = ROUTES[pk.route];
+    const A = projCities[pair[0]];
+    const B = projCities[pair[1]];
+    if(!A || !B || (A.z < 0 && B.z < 0)) return;
+    const t = pk.t;
+    const mx = (A.x + B.x) / 2, my = (A.y + B.y) / 2;
+    const dist = Math.hypot(B.x - A.x, B.y - A.y);
+    const px = lerp(lerp(A.x, mx, t), lerp(mx, B.x, t), t);
+    const py = lerp(lerp(A.y, my - dist*0.16, t), lerp(my - dist*0.16, B.y, t), t);
+    // Subtle gold point, no glow
+    ctx.beginPath();
+    ctx.arc(px, py, 2, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(231,200,115,${0.7 - t * 0.4})`;
+    ctx.fill();
+  });
+
+  requestAnimationFrame(drawWorld);
+}
+drawWorld();
+
+// ════════════════════════════════════════════════════════
+// COORDINATE STREAM
+// ════════════════════════════════════════════════════════
+const coords = ['28.6139°N · 77.2090°E','51.5074°N · 0.1278°W','40.7128°N · 74.0060°W',
+  '35.6762°N · 139.6503°E','48.8566°N · 2.3522°E','19.0760°N · 72.8777°E'];
+let ci = 0;
+setInterval(()=>{ ci = (ci+1)%coords.length; document.getElementById('coordDisplay').textContent = coords[ci]; }, 4000);
+
+// ════════════════════════════════════════════════════════
+// STEP NAVIGATION
+// ════════════════════════════════════════════════════════
+function goStep2(){
+  const phone = document.getElementById('phoneInput').value.trim();
+  if(phone.length < 7){
+    showErr('err1','Please enter a valid phone number.');
+    document.getElementById('phoneInput').classList.add('error');
+    return;
+  }
+  clearErr('err1');
+  document.getElementById('phoneInput').classList.remove('error');
+
+  document.getElementById('sc1').classList.remove('active');
+  document.getElementById('sc1').classList.add('done');
+  document.getElementById('sc1').innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(212,175,55,0.8)" stroke-width="1.5"><polyline points="20 6 9 17 4 12"/></svg>`;
+  document.getElementById('sl1').classList.remove('active');
+  document.getElementById('line1').classList.add('done');
+  document.getElementById('sc2').classList.add('active');
+  document.getElementById('sl2').classList.add('active');
+
+  document.getElementById('step1').style.display = 'none';
+  document.getElementById('step2').style.display = 'block';
+  document.getElementById('dobDay').focus();
+}
+
+function goBack(){
+  document.getElementById('sc2').classList.remove('active');
+  document.getElementById('sl2').classList.remove('active');
+  document.getElementById('sc1').classList.remove('done');
+  document.getElementById('sc1').classList.add('active');
+  document.getElementById('sc1').innerHTML = '<span style="font-style:normal;font-size:9px;letter-spacing:0.05em;">I</span>';
+  document.getElementById('sl1').classList.add('active');
+  document.getElementById('line1').classList.remove('done');
+  clearErr('err2');
+
+  document.getElementById('step2').style.display = 'none';
+  document.getElementById('step1').style.display = 'block';
+  document.getElementById('phoneInput').focus();
+}
+
+function autoTab(el, nextId, maxLen){
+  if(el.value.length >= maxLen) document.getElementById(nextId).focus();
+}
+
+// ════════════════════════════════════════════════════════
+// LOGIN HANDLER
+// ════════════════════════════════════════════════════════
+async function doLogin(){
+  const btn = document.getElementById('loginBtn');
+  const phone = document.getElementById('phoneInput').value.trim();
+  const day   = document.getElementById('dobDay').value.padStart(2,'0');
+  const month = document.getElementById('dobMonth').value.padStart(2,'0');
+  const year  = document.getElementById('dobYear').value;
+
+  if(!day||!month||!year||year.length<4){
+    showErr('err2','Please enter a complete date of birth.');
+    return;
+  }
+  const dob = `${day}${month}${year}`;
+
+  btn.disabled = true;
+  btn.textContent = 'Authenticating…';
+  clearErr('err2');
+
+  try {
+    const db = window._db;
+    const docFn = window._firestoreDoc;
+    const getDocFn = window._firestoreGetDoc;
+
+    const delegateRef = docFn(db, 'delegates', phone);
+    const delegateSnap = await getDocFn(delegateRef);
+
+    if(!delegateSnap.exists()){
+      showErr('err2','No delegate found with this phone number.');
+      btn.disabled = false; btn.textContent = 'Authenticate Credentials';
+      return;
+    }
+
+    const delegate = delegateSnap.data();
+
+    if(delegate.dob !== dob){
+      showErr('err2','Date of birth does not match our records.');
+      btn.disabled = false; btn.textContent = 'Authenticate Credentials';
+      return;
+    }
+
+    localStorage.setItem('delegateId', phone);
+
+    document.getElementById('sc2').classList.remove('active');
+    document.getElementById('sc2').classList.add('done');
+    document.getElementById('sc2').innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(212,175,55,0.8)" stroke-width="1.5"><polyline points="20 6 9 17 4 12"/></svg>`;
+    document.getElementById('sl2').classList.remove('active');
+    document.getElementById('line2').classList.add('done');
+    document.getElementById('sc3').classList.add('active');
+    document.getElementById('sl3').classList.add('active');
+
+    triggerAccess(delegate.name, delegate.committeePreference || 'Unassigned');
+
+  } catch(e){
+    showErr('err2','Something went wrong. Please try again.');
+    btn.disabled = false; btn.textContent = 'Authenticate Credentials';
+    console.error('Login error:', e);
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// ACCESS GRANTED SEQUENCE
+// ════════════════════════════════════════════════════════
+function triggerAccess(name, committee){
+  document.getElementById('accessName').textContent = `Welcome, ${name.split(' ')[0]}`;
+  document.getElementById('accessCommittee').textContent = committee;
+
+  const overlay = document.getElementById('accessOverlay');
+  overlay.classList.add('show');
+
+  setTimeout(() => {
+    document.body.style.transition = 'opacity 0.5s';
+    document.body.style.opacity = '0';
+    setTimeout(() => window.location.href = 'dashboard.html', 500);
+  }, 2800);
+}
+
+// ════════════════════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════════════════════
+function showErr(id, msg){
+  document.getElementById(id.replace('err','err') + 'msg') && (document.getElementById(id+'msg').textContent = msg);
+  document.getElementById(id).classList.add('show');
+}
+function clearErr(id){ document.getElementById(id).classList.remove('show'); }
+</script>
+</body>
+</html>

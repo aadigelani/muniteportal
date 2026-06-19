@@ -1,0 +1,1860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>MUNITE — Diplomatic Assignment</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&family=Cormorant+SC:wght@300;400;500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+
+<style>
+
+/* ════════════════════════════════════════════════════
+   MUNITE · DIPLOMATIC ASSIGNMENT CHAMBER
+   Design language: Diplomatic Hall, not software.
+   ════════════════════════════════════════════════════ */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* Ink and parchment — not silicon and LEDs */
+  --ink:        #09090A;
+  --ink-2:      #111114;
+  --ink-3:      #18181D;
+  --ivory:      #F2EDE4;
+  --ivory-dim:  #C8C0B2;
+  --ivory-faint:#7A7468;
+  --brass:      #B8962E;
+  --brass-dim:  #8A6F22;
+  --brass-faint:rgba(184,150,46,0.18);
+  --brass-line: rgba(184,150,46,0.28);
+  --brass-glow: rgba(184,150,46,0.06);
+
+  /* Post-allocation accent (still restrained) */
+  --seal-green: #2A6B4A;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--ink);
+  color: var(--ivory);
+  font-family: 'EB Garamond', Georgia, serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* ── Marble texture overlay ──────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(ellipse 80% 60% at 50% 0%,   rgba(184,150,46,0.04) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 80% at 100% 50%,  rgba(184,150,46,0.025) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 80% at 0% 50%,    rgba(184,150,46,0.025) 0%, transparent 60%),
+    radial-gradient(ellipse 100% 40% at 50% 100%, rgba(184,150,46,0.03) 0%, transparent 55%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Vertical pillar lines ───────────────────────── */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, var(--brass-line) 1px, transparent 1px),
+    linear-gradient(to right, var(--brass-line) 1px, transparent 1px);
+  background-size: calc(100% / 3) 100%, calc(100% / 3) 100%;
+  background-position: calc(100% / 6) 0, calc(100% / 6 * 5) 0;
+  opacity: 0.06;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ═══════════════════════════════════════════════════
+   LAYOUT
+   ═══════════════════════════════════════════════════ */
+
+.chamber {
+  position: relative;
+  z-index: 1;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 32px 120px;
+}
+
+/* ═══════════════════════════════════════════════════
+   MASTHEAD
+   ═══════════════════════════════════════════════════ */
+
+.masthead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 36px 0 0;
+  border-bottom: 1px solid var(--brass-line);
+  padding-bottom: 28px;
+  margin-bottom: 0;
+}
+
+.masthead-left {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.masthead-pre {
+  font-family: 'Cormorant SC', serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.28em;
+  color: var(--brass);
+  font-weight: 400;
+  text-transform: uppercase;
+}
+
+.masthead-wordmark {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.9rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--ivory);
+  line-height: 1;
+}
+
+.masthead-sub {
+  font-family: 'EB Garamond', serif;
+  font-size: 0.78rem;
+  font-style: italic;
+  color: var(--ivory-faint);
+  letter-spacing: 0.04em;
+  margin-top: 1px;
+}
+
+.masthead-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  padding-top: 4px;
+}
+
+.masthead-date {
+  font-family: 'Cormorant SC', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  color: var(--ivory-faint);
+}
+
+.masthead-session {
+  font-family: 'Cormorant SC', serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  color: var(--brass);
+  opacity: 0.8;
+}
+
+/* ═══════════════════════════════════════════════════
+   SEAL HERO — The centrepiece
+   ═══════════════════════════════════════════════════ */
+
+.seal-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 64px 0 56px;
+  position: relative;
+}
+
+/* Horizontal rule flanking the seal */
+.seal-rule {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 52px;
+}
+
+.seal-rule-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--brass-line), transparent);
+}
+
+.seal-rule-diamond {
+  width: 6px; height: 6px;
+  background: var(--brass);
+  transform: rotate(45deg);
+  flex-shrink: 0;
+  margin: 0 16px;
+  opacity: 0.6;
+}
+
+/* The SVG seal itself */
+#chamber-seal {
+  width: clamp(220px, 50vw, 280px);
+  height: clamp(220px, 50vw, 280px);
+  animation: seal-breathe 8s ease-in-out infinite;
+  filter: drop-shadow(0 0 32px rgba(184,150,46,0.12)) drop-shadow(0 0 80px rgba(184,150,46,0.06));
+}
+
+@keyframes seal-breathe {
+  0%, 100% { transform: rotate(0deg); filter: drop-shadow(0 0 32px rgba(184,150,46,0.12)) drop-shadow(0 0 80px rgba(184,150,46,0.06)); }
+  50%       { transform: rotate(0.4deg); filter: drop-shadow(0 0 48px rgba(184,150,46,0.2)) drop-shadow(0 0 100px rgba(184,150,46,0.1)); }
+}
+
+.seal-caption {
+  margin-top: 36px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.seal-caption-title {
+  font-family: 'Cormorant SC', serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.32em;
+  color: var(--brass);
+  font-weight: 400;
+}
+
+.seal-caption-line {
+  width: 48px;
+  height: 1px;
+  background: var(--brass-line);
+  margin: 0 auto;
+}
+
+.seal-caption-sub {
+  font-family: 'EB Garamond', serif;
+  font-style: italic;
+  font-size: 1.05rem;
+  color: var(--ivory-dim);
+  letter-spacing: 0.02em;
+}
+
+/* ═══════════════════════════════════════════════════
+   COMMITTEE PRESENTATION
+   ═══════════════════════════════════════════════════ */
+
+.committee-presentation {
+  margin: 0 0 64px;
+  text-align: center;
+  position: relative;
+}
+
+.committee-rule-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.committee-rule-line {
+  flex: 1;
+  height: 1px;
+  background: var(--brass-line);
+  opacity: 0.5;
+}
+
+.committee-rule-ornament {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem;
+  color: var(--brass);
+  opacity: 0.5;
+  user-select: none;
+}
+
+.committee-eyebrow {
+  font-family: 'Cormorant SC', serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.36em;
+  color: var(--ivory-faint);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  font-weight: 300;
+}
+
+.committee-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--ivory);
+  line-height: 1.2;
+  margin-bottom: 10px;
+}
+
+.committee-session {
+  font-family: 'EB Garamond', serif;
+  font-style: italic;
+  font-size: 0.92rem;
+  color: var(--brass);
+  letter-spacing: 0.12em;
+}
+
+.committee-rule-bottom {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+/* ═══════════════════════════════════════════════════
+   DELEGATE DOSSIER
+   ═══════════════════════════════════════════════════ */
+
+.dossier {
+  border: 1px solid var(--brass-line);
+  border-radius: 2px;
+  padding: 36px 40px;
+  margin-bottom: 48px;
+  position: relative;
+  background: linear-gradient(135deg, rgba(255,255,255,0.018) 0%, rgba(184,150,46,0.012) 100%);
+}
+
+/* Corner embellishments */
+.dossier::before,
+.dossier::after {
+  content: '';
+  position: absolute;
+  width: 18px; height: 18px;
+  border-color: var(--brass);
+  border-style: solid;
+  opacity: 0.45;
+}
+.dossier::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; border-radius: 0; }
+.dossier::after  { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+
+.dossier-corner-tr,
+.dossier-corner-bl {
+  position: absolute;
+  width: 18px; height: 18px;
+  border-color: var(--brass);
+  border-style: solid;
+  opacity: 0.45;
+}
+.dossier-corner-tr { top: -1px; right: -1px; border-width: 2px 2px 0 0; }
+.dossier-corner-bl { bottom: -1px; left: -1px; border-width: 0 0 2px 2px; }
+
+.dossier-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(184,150,46,0.15);
+  gap: 12px;
+}
+
+.dossier-title {
+  font-family: 'Cormorant SC', serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.36em;
+  color: var(--brass);
+  font-weight: 400;
+}
+
+.dossier-ref {
+  font-family: 'Cormorant SC', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  color: var(--ivory-faint);
+  font-weight: 300;
+}
+
+.dossier-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.dossier-row {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  align-items: baseline;
+  gap: 24px;
+}
+
+.dossier-field-name {
+  font-family: 'Cormorant SC', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.22em;
+  color: var(--ivory-faint);
+  font-weight: 300;
+  flex-shrink: 0;
+}
+
+.dossier-field-value {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--ivory);
+  letter-spacing: 0.03em;
+  border-bottom: 1px solid rgba(184,150,46,0.15);
+  padding-bottom: 4px;
+}
+
+.dossier-field-value.highlighted {
+  color: var(--ivory);
+  font-size: 1.2rem;
+}
+
+.dossier-status-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.dossier-status-indicator {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--brass);
+  opacity: 0.7;
+  animation: indicator-pulse 3s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes indicator-pulse {
+  0%, 100% { opacity: 0.35; }
+  50%       { opacity: 0.85; }
+}
+
+.dossier-status-text {
+  font-family: 'EB Garamond', serif;
+  font-style: italic;
+  font-size: 0.88rem;
+  color: var(--ivory-faint);
+  letter-spacing: 0.04em;
+}
+
+/* ═══════════════════════════════════════════════════
+   REGISTRY VERIFICATION STRIP
+   ═══════════════════════════════════════════════════ */
+
+.registry-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--brass-line);
+  border: 1px solid var(--brass-line);
+  margin-bottom: 56px;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.registry-cell {
+  background: var(--ink-2);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  text-align: center;
+}
+
+.registry-cell-icon {
+  font-size: 1.1rem;
+  margin-bottom: 2px;
+  opacity: 0.7;
+}
+
+.registry-cell-label {
+  font-family: 'Cormorant SC', serif;
+  font-size: 0.55rem;
+  letter-spacing: 0.24em;
+  color: var(--ivory-faint);
+  font-weight: 300;
+  text-transform: uppercase;
+}
+
+.registry-cell-status {
+  font-family: 'EB Garamond', serif;
+  font-style: italic;
+  font-size: 0.8rem;
+  color: var(--brass);
+  letter-spacing: 0.04em;
+}
+
+/* ═══════════════════════════════════════════════════
+   APPOINTMENT SECTION — The ceremonial action
+   ═══════════════════════════════════════════════════ */
+
+.appointment-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 48px;
+}
+
+.appointment-preamble {
+  text-align: center;
+  max-width: 440px;
+  margin-bottom: 40px;
+}
+
+.appointment-preamble-italic {
+  font-family: 'EB Garamond', serif;
+  font-style: italic;
+  font-size: 1.08rem;
+  color: var(--ivory-dim);
+  line-height: 1.9;
+  letter-spacing: 0.02em;
+}
+
+.appointment-preamble-note {
+  margin-top: 12px;
+  font-family: 'Cormorant SC', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.26em;
+  color: var(--ivory-faint);
+  font-weight: 300;
+}
+
+/* The wax seal button */
+.wax-seal-btn-wrap {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+#appointment-btn {
+  position: relative;
+  width: clamp(160px, 36vw, 200px);
+  height: clamp(160px, 36vw, 200px);
+  border-radius: 50%;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+#appointment-btn:disabled {
+  cursor: not-allowed;
+}
+
+.wax-seal-svg {
+  width: 100%; height: 100%;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s ease;
+  filter: drop-shadow(0 4px 20px rgba(184,150,46,0.15)) drop-shadow(0 1px 4px rgba(0,0,0,0.6));
+}
+
+#appointment-btn:not(:disabled):hover .wax-seal-svg {
+  transform: scale(1.04);
+  filter: drop-shadow(0 6px 32px rgba(184,150,46,0.3)) drop-shadow(0 1px 4px rgba(0,0,0,0.6));
+}
+
+#appointment-btn:not(:disabled):active .wax-seal-svg {
+  transform: scale(0.97);
+}
+
+#appointment-btn:disabled .wax-seal-svg {
+  opacity: 0.4;
+}
+
+.appointment-btn-label {
+  font-family: 'Cormorant SC', serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.28em;
+  color: var(--ivory-faint);
+  text-align: center;
+  transition: color 0.3s ease;
+}
+
+#appointment-btn:not(:disabled):hover + .appointment-btn-label {
+  color: var(--brass);
+}
+
+.appointment-warning {
+  margin-top: 8px;
+  font-family: 'EB Garamond', serif;
+  font-style: italic;
+  font-size: 0.8rem;
+  color: var(--ivory-faint);
+  text-align: center;
+  opacity: 0.65;
+  letter-spacing: 0.02em;
+}
+
+/* ═══════════════════════════════════════════════════
+   ALLOCATION LOADING STATE
+   ═══════════════════════════════════════════════════ */
+
+#allocation-loading {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 40px 0;
+  text-align: center;
+}
+
+.loading-inscription {
+  font-family: 'Cormorant SC', serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.32em;
+  color: var(--brass);
+  animation: inscription-fade 2.5s ease-in-out infinite;
+}
+
+@keyframes inscription-fade {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 1; }
+}
+
+.loading-quill {
+  position: relative;
+  width: 64px; height: 64px;
+}
+
+.loading-quill svg {
+  animation: quill-write 2s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+@keyframes quill-write {
+  0%, 100% { transform: rotate(-3deg) translateY(0); }
+  25%       { transform: rotate(2deg) translateY(-4px); }
+  75%       { transform: rotate(-1deg) translateY(2px); }
+}
+
+.loading-line {
+  width: 180px;
+  height: 1px;
+  background: var(--brass-line);
+  position: relative;
+  overflow: hidden;
+}
+
+.loading-line::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%; width: 60%;
+  height: 100%;
+  background: linear-gradient(to right, transparent, var(--brass), transparent);
+  animation: line-sweep 1.8s ease-in-out infinite;
+}
+
+@keyframes line-sweep {
+  to { left: 200%; }
+}
+
+/* ═══════════════════════════════════════════════════
+   POST-ALLOCATION STATE
+   ═══════════════════════════════════════════════════ */
+
+#post-state {
+  display: none;
+  opacity: 0;
+}
+
+#post-state.revealed {
+  display: block;
+  animation: post-rise 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes post-rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* The appointment document */
+.appointment-document {
+  border: 1px solid var(--brass-line);
+  padding: 52px 44px;
+  position: relative;
+  background: linear-gradient(160deg, rgba(184,150,46,0.025) 0%, transparent 50%);
+  border-radius: 2px;
+  margin-bottom: 32px;
+}
+
+.appointment-document::before,
+.appointment-document::after {
+  content: '';
+  position: absolute;
+  width: 24px; height: 24px;
+  border-color: var(--brass);
+  border-style: solid;
+  opacity: 0.5;
+}
+.appointment-document::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+.appointment-document::after  { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+
+.doc-corner-tr, .doc-corner-bl {
+  position: absolute;
+  width: 24px; height: 24px;
+  border-color: var(--brass);
+  border-style: solid;
+  opacity: 0.5;
+}
+.doc-corner-tr { top: -1px; right: -1px; border-width: 2px 2px 0 0; }
+.doc-corner-bl { bottom: -1px; left: -1px; border-width: 0 0 2px 2px; }
+
+.doc-watermark {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) rotate(-28deg);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(52px, 14vw, 88px);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: rgba(184,150,46,0.04);
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.doc-eyebrow {
+  font-family: 'Cormorant SC', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.4em;
+  color: var(--brass);
+  font-weight: 300;
+  text-align: center;
+  margin-bottom: 32px;
+  opacity: 0.75;
+}
+
+.doc-salutation {
+  font-family: 'EB Garamond', serif;
+  font-style: italic;
+  font-size: 1rem;
+  color: var(--ivory-dim);
+  text-align: center;
+  margin-bottom: 40px;
+  letter-spacing: 0.04em;
+  line-height: 1.7;
+}
+
+.doc-country-wrap {
+  text-align: center;
+  margin: 0 0 40px;
+  padding: 28px 0;
+  border-top: 1px solid rgba(184,150,46,0.18);
+  border-bottom: 1px solid rgba(184,150,46,0.18);
+  position: relative;
+}
+
+.doc-country-pre {
+  font-family: 'Cormorant SC', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.36em;
+  color: var(--ivory-faint);
+  margin-bottom: 14px;
+  font-weight: 300;
+}
+
+.doc-country-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2.2rem, 8vw, 3.6rem);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--ivory);
+  line-height: 1.05;
+  overflow: hidden;
+  display: block;
+}
+
+.doc-country-name span {
+  display: inline-block;
+  transform: translateY(110%);
+  opacity: 0;
+}
+
+.doc-country-name.animate span {
+  animation: char-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes char-rise {
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.doc-country-post {
+  font-family: 'EB Garamond', serif;
+  font-style: italic;
+  font-size: 0.9rem;
+  color: var(--brass);
+  margin-top: 14px;
+  letter-spacing: 0.08em;
+}
+
+.doc-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px 32px;
+  margin-bottom: 36px;
+}
+
+.doc-meta-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.doc-meta-label {
+  font-family: 'Cormorant SC', serif;
+  font-size: 0.55rem;
+  letter-spacing: 0.26em;
+  color: var(--ivory-faint);
+  font-weight: 300;
+  text-transform: uppercase;
+}
+
+.doc-meta-value {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--ivory);
+  letter-spacing: 0.03em;
+}
+
+.doc-closing {
+  text-align: center;
+  padding-top: 24px;
+  border-top: 1px solid rgba(184,150,46,0.12);
+}
+
+.doc-closing-seal {
+  font-family: 'Cormorant SC', serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  color: var(--ivory-faint);
+  margin-bottom: 8px;
+  font-weight: 300;
+}
+
+.doc-closing-text {
+  font-family: 'EB Garamond', serif;
+  font-style: italic;
+  font-size: 0.82rem;
+  color: var(--ivory-faint);
+  opacity: 0.6;
+  letter-spacing: 0.04em;
+}
+
+/* Lock notice */
+.lock-notice {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 24px;
+  border: 1px solid rgba(184,150,46,0.2);
+  background: rgba(184,150,46,0.03);
+  border-radius: 2px;
+  margin-bottom: 56px;
+}
+
+.lock-notice-bar {
+  width: 3px;
+  height: 36px;
+  background: var(--brass);
+  opacity: 0.5;
+  flex-shrink: 0;
+  border-radius: 1px;
+}
+
+.lock-notice-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.lock-notice-title {
+  font-family: 'Cormorant SC', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.22em;
+  color: var(--brass);
+  font-weight: 400;
+}
+
+.lock-notice-body {
+  font-family: 'EB Garamond', serif;
+  font-style: italic;
+  font-size: 0.83rem;
+  color: var(--ivory-faint);
+  letter-spacing: 0.02em;
+}
+
+/* ═══════════════════════════════════════════════════
+   STUDY GUIDE
+   ═══════════════════════════════════════════════════ */
+
+#study-guide-section {
+  display: none;
+}
+
+.sg-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.sg-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.3rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--ivory);
+}
+
+.sg-subtitle {
+  font-family: 'EB Garamond', serif;
+  font-style: italic;
+  font-size: 0.82rem;
+  color: var(--ivory-faint);
+}
+
+.sg-frame-wrap {
+  position: relative;
+  border: 1px solid var(--brass-line);
+  border-radius: 2px;
+  overflow: hidden;
+  background: var(--ink-2);
+}
+
+.sg-frame-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--brass-line);
+  background: rgba(184,150,46,0.03);
+}
+
+.sg-frame-title {
+  font-family: 'Cormorant SC', serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  color: var(--ivory-faint);
+}
+
+.sg-frame-badge {
+  font-family: 'Cormorant SC', serif;
+  font-size: 0.56rem;
+  letter-spacing: 0.18em;
+  color: var(--brass);
+  opacity: 0.6;
+  padding: 3px 10px;
+  border: 1px solid var(--brass-line);
+}
+
+.sg-watermark-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 2;
+  overflow: hidden;
+}
+
+.sg-watermark-text {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(18px, 5vw, 28px);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: rgba(184,150,46,0.07);
+  transform: rotate(-25deg);
+  white-space: nowrap;
+  text-align: center;
+  user-select: none;
+  line-height: 2.2;
+}
+
+.sg-frame {
+  width: 100%;
+  height: min(65vh, 560px);
+  border: none;
+  display: block;
+}
+
+.sg-placeholder {
+  padding: 64px 32px;
+  text-align: center;
+  font-family: 'EB Garamond', serif;
+  font-style: italic;
+  font-size: 1rem;
+  color: var(--ivory-faint);
+  line-height: 1.8;
+}
+
+/* ═══════════════════════════════════════════════════
+   FOOTER
+   ═══════════════════════════════════════════════════ */
+
+.chamber-footer {
+  margin-top: 80px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(184,150,46,0.12);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.footer-left {
+  font-family: 'Cormorant SC', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  color: var(--ivory-faint);
+  opacity: 0.5;
+}
+
+.footer-rule {
+  flex: 1;
+  height: 1px;
+  background: var(--brass-line);
+  opacity: 0.3;
+  max-width: 80px;
+}
+
+.footer-right {
+  font-family: 'Cormorant SC', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  color: var(--ivory-faint);
+  opacity: 0.5;
+}
+
+/* ═══════════════════════════════════════════════════
+   FUTURE HIDDEN SECTIONS
+   ═══════════════════════════════════════════════════ */
+
+.future-section { display: none; }
+
+/* ═══════════════════════════════════════════════════
+   MOBILE
+   ═══════════════════════════════════════════════════ */
+
+@media (max-width: 600px) {
+  .chamber { padding: 0 20px 100px; }
+  .masthead { padding-top: 24px; padding-bottom: 20px; }
+  .masthead-wordmark { font-size: 1.5rem; }
+  .seal-hero { padding: 48px 0 40px; }
+  .dossier { padding: 28px 24px; }
+  .dossier-row { grid-template-columns: 1fr; gap: 4px; }
+  .dossier-field-name { font-size: 0.58rem; }
+  .registry-strip { grid-template-columns: 1fr; }
+  .appointment-document { padding: 36px 24px; }
+  .doc-meta-grid { grid-template-columns: 1fr; gap: 16px; }
+  .committee-name { font-size: 1.5rem; }
+  .masthead-right { display: none; }
+}
+
+/* ═══════════════════════════════════════════════════
+   REDUCED MOTION
+   ═══════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.15ms !important;
+  }
+}
+
+</style>
+</head>
+<body>
+
+<div class="chamber">
+
+  <!-- ══ MASTHEAD ════════════════════════════════════ -->
+  <div class="masthead">
+    <div class="masthead-left">
+      <div class="masthead-pre">Diplomatic Registry</div>
+      <div class="masthead-wordmark">MUNITE</div>
+      <div class="masthead-sub">Model United Nations Integrated</div>
+    </div>
+    <div class="masthead-right">
+      <div class="masthead-date" id="masthead-date">—</div>
+      <div class="masthead-session">Plenary Session 2025</div>
+    </div>
+  </div>
+
+  <!-- ══ SEAL HERO ══════════════════════════════════ -->
+  <div class="seal-hero">
+    <div class="seal-rule">
+      <div class="seal-rule-line"></div>
+      <div class="seal-rule-diamond"></div>
+      <div class="seal-rule-line"></div>
+    </div>
+
+    <!-- Multi-ring diplomatic seal SVG -->
+    <svg id="chamber-seal" viewBox="0 0 280 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="sealBg" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stop-color="#1A1710" stop-opacity="1"/>
+          <stop offset="100%" stop-color="#0E0D0A" stop-opacity="1"/>
+        </radialGradient>
+        <radialGradient id="sealGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"  stop-color="#B8962E" stop-opacity="0.12"/>
+          <stop offset="100%" stop-color="#B8962E" stop-opacity="0"/>
+        </radialGradient>
+        <!-- Text path for outer ring inscription -->
+        <path id="outerTextPath" d="M 140,140 m -116,0 a 116,116 0 1,1 232,0 a 116,116 0 1,1 -232,0"/>
+        <path id="innerTextPath" d="M 140,140 m -90,0 a 90,90 0 1,1 180,0 a 90,90 0 1,1 -180,0"/>
+      </defs>
+
+      <!-- Glow halo -->
+      <circle cx="140" cy="140" r="134" fill="url(#sealGlow)"/>
+
+      <!-- Outer ring background -->
+      <circle cx="140" cy="140" r="130" fill="url(#sealBg)" stroke="#B8962E" stroke-width="0.8" stroke-opacity="0.5"/>
+
+      <!-- Outer dash ring -->
+      <circle cx="140" cy="140" r="126" fill="none" stroke="#B8962E" stroke-width="0.6" stroke-opacity="0.3"
+        stroke-dasharray="3 5"/>
+
+      <!-- Outer text ring inscription -->
+      <text font-family="Cormorant SC, serif" font-size="8.5" fill="#B8962E" fill-opacity="0.7" letter-spacing="3.5">
+        <textPath href="#outerTextPath" startOffset="0%">
+          MUNITE · MODEL UNITED NATIONS INTEGRATED · DIPLOMATIC REGISTRY ·
+        </textPath>
+      </text>
+
+      <!-- Ring 2 -->
+      <circle cx="140" cy="140" r="108" fill="none" stroke="#B8962E" stroke-width="0.8" stroke-opacity="0.45"/>
+      <circle cx="140" cy="140" r="104" fill="none" stroke="#B8962E" stroke-width="0.4" stroke-opacity="0.2"/>
+
+      <!-- Ring 3 – inner inscription band -->
+      <circle cx="140" cy="140" r="96" fill="none" stroke="#B8962E" stroke-width="0.6" stroke-opacity="0.3"/>
+
+      <text font-family="EB Garamond, serif" font-size="7.5" fill="#B8962E" fill-opacity="0.5" font-style="italic" letter-spacing="1.5">
+        <textPath href="#innerTextPath" startOffset="2%">
+          Assigned Under the Authority of the Secretariat
+        </textPath>
+      </text>
+
+      <!-- Inner circle fill -->
+      <circle cx="140" cy="140" r="80" fill="#12100C" stroke="#B8962E" stroke-width="1" stroke-opacity="0.5"/>
+      <circle cx="140" cy="140" r="76" fill="none" stroke="#B8962E" stroke-width="0.4" stroke-opacity="0.2"/>
+
+      <!-- Central emblem: laurel leaves (stylised) -->
+      <!-- Left wreath arc -->
+      <path d="M 100 140 Q 96 128 104 118 Q 108 130 106 142 Z" fill="#B8962E" fill-opacity="0.55"/>
+      <path d="M 98 148 Q 91 138 96 126 Q 102 136 103 150 Z" fill="#B8962E" fill-opacity="0.4"/>
+      <path d="M 100 156 Q 90 148 93 136 Q 100 146 104 158 Z" fill="#B8962E" fill-opacity="0.35"/>
+      <path d="M 104 163 Q 94 157 96 145 Q 104 154 108 165 Z" fill="#B8962E" fill-opacity="0.3"/>
+      <!-- Right wreath arc -->
+      <path d="M 180 140 Q 184 128 176 118 Q 172 130 174 142 Z" fill="#B8962E" fill-opacity="0.55"/>
+      <path d="M 182 148 Q 189 138 184 126 Q 178 136 177 150 Z" fill="#B8962E" fill-opacity="0.4"/>
+      <path d="M 180 156 Q 190 148 187 136 Q 180 146 176 158 Z" fill="#B8962E" fill-opacity="0.35"/>
+      <path d="M 176 163 Q 186 157 184 145 Q 176 154 172 165 Z" fill="#B8962E" fill-opacity="0.3"/>
+      <!-- Wreath tie at bottom -->
+      <path d="M 128 168 Q 140 174 152 168 Q 140 180 128 168 Z" fill="#B8962E" fill-opacity="0.4"/>
+
+      <!-- Central monogram MU -->
+      <text x="140" y="136" text-anchor="middle"
+        font-family="Cormorant Garamond, serif"
+        font-size="26" font-weight="700"
+        fill="#F2EDE4" fill-opacity="0.85"
+        letter-spacing="4">MUN</text>
+
+      <!-- Stars between M and wreath -->
+      <circle cx="140" cy="150" r="2.5" fill="#B8962E" fill-opacity="0.55"/>
+      <circle cx="132" cy="148" r="1.5" fill="#B8962E" fill-opacity="0.4"/>
+      <circle cx="148" cy="148" r="1.5" fill="#B8962E" fill-opacity="0.4"/>
+
+      <!-- Tick marks on outer ring -->
+      <g stroke="#B8962E" stroke-opacity="0.35" stroke-width="1">
+        <line x1="140" y1="10" x2="140" y2="17"/>
+        <line x1="140" y1="263" x2="140" y2="270"/>
+        <line x1="10" y1="140" x2="17" y2="140"/>
+        <line x1="263" y1="140" x2="270" y2="140"/>
+        <!-- Diagonal ticks -->
+        <line x1="50" y1="50" x2="55" y2="55"/>
+        <line x1="225" y1="50" x2="220" y2="55"/>
+        <line x1="50" y1="230" x2="55" y2="225"/>
+        <line x1="225" y1="230" x2="220" y2="225"/>
+      </g>
+
+      <!-- Corner ornamental dots -->
+      <circle cx="140" cy="14" r="2" fill="#B8962E" fill-opacity="0.4"/>
+      <circle cx="140" cy="266" r="2" fill="#B8962E" fill-opacity="0.4"/>
+    </svg>
+
+    <div class="seal-caption">
+      <div class="seal-caption-title">Official Assignment Registry</div>
+      <div class="seal-caption-line"></div>
+      <div class="seal-caption-sub">Your portfolio awaits its delegate</div>
+    </div>
+  </div>
+
+  <!-- PRE-ALLOCATION EXPERIENCE -->
+  <div id="pre-state">
+
+    <!-- ══ COMMITTEE PRESENTATION ════════════════════ -->
+    <div class="committee-presentation">
+      <div class="committee-rule-top">
+        <div class="committee-rule-line"></div>
+        <div class="committee-rule-ornament">✦</div>
+        <div class="committee-rule-line"></div>
+      </div>
+      <div class="committee-eyebrow">Assigned Committee</div>
+      <div class="committee-name" id="committee-name-display">United Nations Security Council</div>
+      <div class="committee-session">Permanent Session · Open for Assignment</div>
+      <div class="committee-rule-bottom">
+        <div class="committee-rule-line"></div>
+        <div class="committee-rule-ornament">✦</div>
+        <div class="committee-rule-line"></div>
+      </div>
+    </div>
+
+    <!-- ══ DELEGATE DOSSIER ══════════════════════════ -->
+    <div class="dossier">
+      <div class="dossier-corner-tr"></div>
+      <div class="dossier-corner-bl"></div>
+
+      <div class="dossier-header">
+        <div class="dossier-title">Delegate Dossier</div>
+        <div class="dossier-ref" id="dossier-ref">REF — —</div>
+      </div>
+
+      <div class="dossier-rows">
+        <div class="dossier-row">
+          <div class="dossier-field-name">Full Name</div>
+          <div class="dossier-field-value" id="dossier-name">—</div>
+        </div>
+        <div class="dossier-row">
+          <div class="dossier-field-name">Committee</div>
+          <div class="dossier-field-value highlighted" id="dossier-committee">—</div>
+        </div>
+        <div class="dossier-row">
+          <div class="dossier-field-name">Assignment</div>
+          <div class="dossier-field-value">
+            <div class="dossier-status-row">
+              <div class="dossier-status-indicator"></div>
+              <div class="dossier-status-text">Portfolio pending appointment</div>
+            </div>
+          </div>
+        </div>
+        <div class="dossier-row">
+          <div class="dossier-field-name">Credentials</div>
+          <div class="dossier-field-value">
+            <div class="dossier-status-row">
+              <div class="dossier-status-indicator" style="animation-delay:0.8s;"></div>
+              <div class="dossier-status-text">Verified and authenticated</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ REGISTRY VERIFICATION ═════════════════════ -->
+    <div class="registry-strip">
+      <div class="registry-cell">
+        <div class="registry-cell-icon">⚖</div>
+        <div class="registry-cell-label">Registry Status</div>
+        <div class="registry-cell-status">Active</div>
+      </div>
+      <div class="registry-cell">
+        <div class="registry-cell-icon">◈</div>
+        <div class="registry-cell-label">Credential Auth</div>
+        <div class="registry-cell-status">Confirmed</div>
+      </div>
+      <div class="registry-cell">
+        <div class="registry-cell-icon">◉</div>
+        <div class="registry-cell-label">Portfolio Status</div>
+        <div class="registry-cell-status">Available</div>
+      </div>
+    </div>
+
+    <!-- ══ APPOINTMENT ACTION ═════════════════════════ -->
+    <div class="appointment-section">
+      <div class="appointment-preamble">
+        <div class="appointment-preamble-italic">
+          Upon acceptance of this appointment, a portfolio<br>
+          shall be assigned from the committee registry<br>
+          and sealed in the permanent record.
+        </div>
+        <div class="appointment-preamble-note">This action is irreversible · Issued under authority of the Secretariat</div>
+      </div>
+
+      <div class="wax-seal-btn-wrap">
+        <button id="appointment-btn" onclick="handleAppointment()" aria-label="Accept appointment">
+          <!-- The wax seal button -->
+          <svg class="wax-seal-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="waxGrad" cx="45%" cy="38%" r="60%">
+                <stop offset="0%"   stop-color="#2A1F06"/>
+                <stop offset="40%"  stop-color="#1C1508"/>
+                <stop offset="100%" stop-color="#100E06"/>
+              </radialGradient>
+              <radialGradient id="waxSheen" cx="35%" cy="30%" r="55%">
+                <stop offset="0%"  stop-color="#C8A832" stop-opacity="0.25"/>
+                <stop offset="100%" stop-color="#C8A832" stop-opacity="0"/>
+              </radialGradient>
+              <path id="waxTextRing" d="M 100,100 m -68,0 a 68,68 0 1,1 136,0 a 68,68 0 1,1 -136,0"/>
+            </defs>
+
+            <!-- Outer wax circle -->
+            <circle cx="100" cy="100" r="95" fill="url(#waxGrad)" stroke="#B8962E" stroke-width="1" stroke-opacity="0.6"/>
+            <!-- Sheen -->
+            <circle cx="100" cy="100" r="95" fill="url(#waxSheen)"/>
+            <!-- Inner ring -->
+            <circle cx="100" cy="100" r="82" fill="none" stroke="#B8962E" stroke-width="0.8" stroke-opacity="0.4"/>
+            <circle cx="100" cy="100" r="76" fill="none" stroke="#B8962E" stroke-width="0.4" stroke-opacity="0.2"
+              stroke-dasharray="2 4"/>
+
+            <!-- Circular text -->
+            <text font-family="Cormorant SC, serif" font-size="7.5" fill="#B8962E" fill-opacity="0.65" letter-spacing="4">
+              <textPath href="#waxTextRing" startOffset="0%">ACCEPT · APPOINTMENT · MUNITE ·</textPath>
+            </text>
+
+            <!-- Center: radiant lines -->
+            <g stroke="#B8962E" stroke-opacity="0.25" stroke-width="0.8">
+              <line x1="100" y1="30" x2="100" y2="46"/>
+              <line x1="100" y1="154" x2="100" y2="170"/>
+              <line x1="30" y1="100" x2="46" y2="100"/>
+              <line x1="154" y1="100" x2="170" y2="100"/>
+              <line x1="51" y1="51" x2="62" y2="62"/>
+              <line x1="138" y1="138" x2="149" y2="149"/>
+              <line x1="149" y1="51" x2="138" y2="62"/>
+              <line x1="62" y1="138" x2="51" y2="149"/>
+            </g>
+
+            <!-- Monogram -->
+            <text x="100" y="88" text-anchor="middle"
+              font-family="Cormorant Garamond, serif"
+              font-size="16" font-weight="600"
+              fill="#C8A832" fill-opacity="0.5"
+              letter-spacing="6">MUN</text>
+
+            <!-- The key action word -->
+            <text x="100" y="108" text-anchor="middle"
+              font-family="Cormorant SC, serif"
+              font-size="13" font-weight="500"
+              fill="#F2EDE4" fill-opacity="0.9"
+              letter-spacing="3">Accept</text>
+
+            <text x="100" y="124" text-anchor="middle"
+              font-family="Cormorant SC, serif"
+              font-size="9" font-weight="300"
+              fill="#F2EDE4" fill-opacity="0.5"
+              letter-spacing="2.5">Appointment</text>
+
+            <!-- Bottom ornament -->
+            <path d="M 82 140 Q 100 148 118 140" stroke="#B8962E" stroke-width="0.8" stroke-opacity="0.4" fill="none"/>
+          </svg>
+        </button>
+        <div class="appointment-btn-label" id="appointment-btn-label">Press seal to accept mandate</div>
+        <div class="appointment-warning">This assignment is permanent and cannot be reversed</div>
+      </div>
+
+      <!-- Loading state (shown during allocation) -->
+      <div id="allocation-loading">
+        <div class="loading-quill">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+            <path d="M38 6 C38 6 44 12 40 20 L24 44 L20 40 L36 16 C38 12 34 8 30 10 C26 12 20 20 16 32 L12 30 C16 18 24 8 32 6 C34 5 36 5 38 6Z"
+              fill="#B8962E" fill-opacity="0.6"/>
+            <path d="M24 44 L18 42 L20 40 Z" fill="#B8962E" fill-opacity="0.4"/>
+          </svg>
+        </div>
+        <div class="loading-inscription" id="loading-inscription">Consulting the Registry…</div>
+        <div class="loading-line"></div>
+      </div>
+    </div>
+
+  </div>
+  <!-- /pre-state -->
+
+  <!-- ══ POST-ALLOCATION STATE ═══════════════════════ -->
+  <div id="post-state">
+
+    <div class="appointment-document">
+      <div class="doc-corner-tr"></div>
+      <div class="doc-corner-bl"></div>
+      <div class="doc-watermark">MUNITE</div>
+
+      <div class="doc-eyebrow">Official Diplomatic Appointment</div>
+
+      <div class="doc-salutation" id="doc-salutation">
+        This is to certify that the undersigned delegate has been<br>
+        officially appointed to represent the following portfolio.
+      </div>
+
+      <div class="doc-country-wrap">
+        <div class="doc-country-pre">Assigned Portfolio</div>
+        <div class="doc-country-name" id="doc-country-name">—</div>
+        <div class="doc-country-post" id="doc-country-post">—</div>
+      </div>
+
+      <div class="doc-meta-grid">
+        <div class="doc-meta-field">
+          <div class="doc-meta-label">Delegate</div>
+          <div class="doc-meta-value" id="doc-delegate-name">—</div>
+        </div>
+        <div class="doc-meta-field">
+          <div class="doc-meta-label">Committee</div>
+          <div class="doc-meta-value" id="doc-committee">—</div>
+        </div>
+        <div class="doc-meta-field">
+          <div class="doc-meta-label">Date of Assignment</div>
+          <div class="doc-meta-value" id="doc-date">—</div>
+        </div>
+        <div class="doc-meta-field">
+          <div class="doc-meta-label">Registry Reference</div>
+          <div class="doc-meta-value" id="doc-ref">—</div>
+        </div>
+      </div>
+
+      <div class="doc-closing">
+        <div class="doc-closing-seal">Issued by the Secretariat · MUNITE Diplomatic Registry</div>
+        <div class="doc-closing-text">
+          This appointment is final, permanent, and entered into the official record.
+        </div>
+      </div>
+    </div>
+
+    <div class="lock-notice">
+      <div class="lock-notice-bar"></div>
+      <div class="lock-notice-text">
+        <div class="lock-notice-title">Allocation Permanently Sealed</div>
+        <div class="lock-notice-body">This assignment has been entered into the registry and cannot be changed. Contact the Secretariat for enquiries.</div>
+      </div>
+    </div>
+
+    <!-- Study Guide -->
+    <div id="study-guide-section">
+      <div class="sg-heading">
+        <div class="sg-title">Study Guide</div>
+        <div class="sg-subtitle">Provided by the Secretariat</div>
+      </div>
+      <div class="sg-frame-wrap">
+        <div class="sg-frame-header">
+          <div class="sg-frame-title" id="sg-frame-title">Committee Study Guide</div>
+          <div class="sg-frame-badge">Viewing Only · Confidential</div>
+        </div>
+        <div class="sg-watermark-overlay">
+          <div class="sg-watermark-text" id="sg-watermark-text">MUNITE · DELEGATE</div>
+        </div>
+        <div id="sg-content">
+          <div class="sg-placeholder">
+            Study material will be published here by the Secretariat once available.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <!-- /post-state -->
+
+  <!-- ══ FUTURE SECTIONS (hidden architecture) ════════ -->
+  <div class="future-section" id="position-papers-section"></div>
+  <div class="future-section" id="committee-resources-section"></div>
+  <div class="future-section" id="additional-documents-section"></div>
+  <div class="future-section" id="awards-section"></div>
+
+  <!-- ══ FOOTER ════════════════════════════════════════ -->
+  <div class="chamber-footer">
+    <div class="footer-left">MUNITE · Registry</div>
+    <div class="footer-rule"></div>
+    <div class="footer-right">Confidential</div>
+  </div>
+
+</div>
+<!-- /chamber -->
+
+<script>
+/* ════════════════════════════════════════════════════════
+   MUNITE · DIPLOMATIC ASSIGNMENT · CLIENT RUNTIME
+   ════════════════════════════════════════════════════════ */
+
+const COMMITTEE_FULL_NAMES = {
+  UNSC:    'United Nations Security Council',
+  UNHRC:   'United Nations Human Rights Council',
+  ECOSOC:  'Economic & Social Council',
+  DISEC:   'Disarmament & International Security',
+  SOCHUM:  'Social, Humanitarian & Cultural',
+  SPECPOL: 'Special Political & Decolonization',
+  LEGAL:   'Legal Committee',
+  BUDGET:  'Administrative & Budgetary Committee',
+};
+
+/* ── Delegate state (populated by Firebase integration) ── */
+const DELEGATE_DATA = {
+  name:       'Delegate',
+  committee:  'UNSC',
+  portfolio:  null,
+  allocated:  false,
+  pdfUrl:     '',
+  studyGuideTitle: 'UNSC Study Guide 2025',
+};
+
+/* ── Public API (called from Firebase integration layer) ── */
+window.MUNITE = {
+  setDelegate(data) {
+    Object.assign(DELEGATE_DATA, data);
+    renderDelegateInfo();
+    if (data.allocated && data.portfolio) {
+      showPostState(data.portfolio, data.committee, data.allocationTimestamp, true);
+    }
+  },
+  setPortfolio(config) {
+    Object.assign(DELEGATE_DATA, config);
+    if (config.pdfUrl) loadStudyGuide(config.pdfUrl, config.studyGuideTitle);
+  },
+  revealAllocation(portfolio, committee) {
+    showPostState(portfolio, committee, new Date(), false);
+  },
+};
+
+/* ── Date in masthead ── */
+function setMastheadDate() {
+  const d = new Date();
+  const months = ['January','February','March','April','May','June',
+                  'July','August','September','October','November','December'];
+  document.getElementById('masthead-date').textContent =
+    `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+/* ── Render delegate dossier ── */
+function renderDelegateInfo() {
+  const name      = DELEGATE_DATA.name || '—';
+  const committee = DELEGATE_DATA.committee || '—';
+  const fullName  = COMMITTEE_FULL_NAMES[committee] || committee;
+
+  document.getElementById('dossier-name').textContent      = name;
+  document.getElementById('dossier-committee').textContent = fullName;
+  document.getElementById('committee-name-display').textContent = fullName;
+
+  // Reference number (derived from name + date)
+  const ref = 'REF-' + name.replace(/\s+/g,'').toUpperCase().slice(0,4) +
+              '-' + new Date().getFullYear() + '-' + String(Math.floor(Math.random()*9000)+1000);
+  document.getElementById('dossier-ref').textContent = ref;
+}
+
+/* ── Loading inscriptions ── */
+const LOADING_LINES = [
+  'Consulting the Registry…',
+  'Verifying Credentials…',
+  'Scanning Available Portfolios…',
+  'Authenticating Mandate…',
+  'Sealing Assignment…',
+];
+let loadingInterval = null;
+
+function startLoadingSequence() {
+  let i = 0;
+  const el = document.getElementById('loading-inscription');
+  el.textContent = LOADING_LINES[0];
+  loadingInterval = setInterval(() => {
+    i = (i + 1) % LOADING_LINES.length;
+    el.style.opacity = '0';
+    setTimeout(() => {
+      el.textContent = LOADING_LINES[i];
+      el.style.opacity = '';
+    }, 300);
+  }, 1400);
+}
+
+function stopLoadingSequence() {
+  if (loadingInterval) clearInterval(loadingInterval);
+}
+
+/* ── Handle appointment button click ── */
+function handleAppointment() {
+  const btn = document.getElementById('appointment-btn');
+  if (btn.disabled) return;
+  btn.disabled = true;
+
+  // Collapse the wax seal action into loading state
+  const waxWrap = document.querySelector('.wax-seal-btn-wrap');
+  waxWrap.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+  waxWrap.style.opacity = '0';
+  waxWrap.style.transform = 'scale(0.96)';
+
+  setTimeout(() => {
+    waxWrap.style.display = 'none';
+
+    // Show loading state
+    const loading = document.getElementById('allocation-loading');
+    loading.style.display = 'flex';
+    startLoadingSequence();
+
+    // Trigger allocation — if Firebase is connected, call the real allocator
+    if (window.__allocate) {
+      window.__allocate();
+    } else {
+      // Demo mode
+      const demos = ['United States of America','France','Russian Federation',
+                     'Republic of India','People\'s Republic of China','Federal Republic of Germany',
+                     'United Kingdom','Federative Republic of Brazil'];
+      const portfolio = demos[Math.floor(Math.random() * demos.length)];
+      setTimeout(() => {
+        stopLoadingSequence();
+        showPostState(portfolio, DELEGATE_DATA.committee, new Date(), false);
+      }, 4200);
+    }
+  }, 500);
+}
+
+/* ── Reveal post-allocation state ── */
+function showPostState(portfolio, committee, timestamp, immediate) {
+  const fullCommittee = COMMITTEE_FULL_NAMES[committee] || committee;
+  const delegate      = DELEGATE_DATA;
+
+  // Hide pre-state
+  const preEl = document.getElementById('pre-state');
+
+  if (!immediate) {
+    preEl.style.transition = 'opacity 0.7s ease, transform 0.7s ease';
+    preEl.style.opacity    = '0';
+    preEl.style.transform  = 'translateY(-12px)';
+  }
+
+  setTimeout(() => {
+    preEl.style.display = 'none';
+
+    // Populate post-state
+    document.getElementById('doc-committee').textContent    = fullCommittee;
+    document.getElementById('doc-delegate-name').textContent = delegate.name || '—';
+    document.getElementById('doc-country-post').textContent = fullCommittee;
+
+    const ts = timestamp instanceof Date ? timestamp :
+      (timestamp?.toDate ? timestamp.toDate() : new Date());
+    document.getElementById('doc-date').textContent = ts.toLocaleDateString('en-GB', {
+      day:'numeric', month:'long', year:'numeric'
+    });
+    document.getElementById('doc-ref').textContent =
+      'MUN-' + String(Date.now()).slice(-6);
+
+    // Study guide watermark
+    document.getElementById('sg-watermark-text').textContent =
+      `${delegate.name || 'DELEGATE'} · ${committee} · ${portfolio}`;
+    document.getElementById('sg-frame-title').textContent =
+      `${committee} Study Guide`;
+
+    // Show post-state
+    const postEl = document.getElementById('post-state');
+    postEl.style.display = 'block';
+    requestAnimationFrame(() => postEl.classList.add('revealed'));
+
+    // Animate the country name after a beat
+    setTimeout(() => {
+      animateCountryName(portfolio);
+    }, immediate ? 0 : 400);
+
+    // Show study guide section
+    setTimeout(() => {
+      const sg = document.getElementById('study-guide-section');
+      sg.style.display = 'block';
+      
+      if (DELEGATE_DATA.pdfUrl) loadStudyGuide(DELEGATE_DATA.pdfUrl, DELEGATE_DATA.studyGuideTitle);
+    }, immediate ? 0 : 1200);
+
+  }, immediate ? 0 : 750);
+}
+
+/* ── Country name character animation ── */
+function animateCountryName(name) {
+  const el = document.getElementById('doc-country-name');
+  el.innerHTML = '';
+  name.split('').forEach((ch, i) => {
+    const span = document.createElement('span');
+    span.textContent = ch === ' ' ? '\u00A0' : ch;
+    span.style.animationDelay = `${i * 42}ms`;
+    el.appendChild(span);
+  });
+  el.classList.add('animate');
+}
+
+/* ── Load study guide PDF ── */
+function loadStudyGuide(url, title) {
+
+  console.log("LOAD STUDY GUIDE CALLED");
+  console.log("URL =", url);
+
+  const container =
+    document.getElementById('sg-content');
+
+  container.innerHTML = `
+    <iframe
+      class="sg-frame"
+      src="${url}"
+      style="width:100%;height:600px;border:none;">
+    </iframe>
+  `;
+}
+
+/* ── Initialise ── */
+function init() {
+  setMastheadDate();
+  renderDelegateInfo();
+}
+
+init();
+</script>
+
+<!-- ════════════════════════════════════════════════════
+     Firebase Integration
+     Replace firebaseConfig with your project values.
+     ════════════════════════════════════════════════════ -->
+<script type="module">
+import { initializeApp }    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, doc, getDoc, collection, query, where, getDocs,
+         runTransaction, serverTimestamp }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCeEFqHujlHHAkr8Bq7uOG8CTXYY1Vfd60",
+  authDomain: "munite-acf5d.firebaseapp.com",
+  projectId: "munite-acf5d",
+  storageBucket: "munite-acf5d.firebasestorage.app",
+  messagingSenderId: "785242774756",
+  appId: "1:785242774756:web:2aea5a47dd93d9fbd260f1"
+};
+
+const app  = initializeApp(firebaseConfig);
+const db   = getFirestore(app);
+
+
+
+/* Fisher-Yates shuffle */
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/* Load committee portfolio JSON */
+async function loadPortfolios(committee) {
+  try {
+    const res = await fetch(`portfolios/${committee}.json`);
+    if (!res.ok) throw new Error('not found');
+    return await res.json();
+  } catch {
+    return ['United States','Russia','China','France','United Kingdom',
+            'India','Germany','Brazil','Japan','Canada'];
+  }
+}
+
+/* Load study guide URL from Firestore */
+async function loadStudyGuideUrl(committee) {
+  try {
+    console.log("Committee requested:", "[" + committee + "]");
+
+      const snap = await getDoc(
+        doc(db, 'committees', committee.trim())
+      );
+
+    console.log("Committee doc exists:", snap.exists());
+
+    if (snap.exists()) {
+      console.log("Committee data:", snap.data());
+      console.log("Study guide URL:", snap.data().studyGuideUrl);
+    }
+
+    return snap.exists()
+      ? snap.data().studyGuideUrl || null
+      : null;
+
+  } catch (e) {
+    console.error("Study guide error:", e);
+    return null;
+  }
+}
+
+/* Allocate portfolio atomically */
+async function allocate(uid, committee) {
+  const portfolios = shuffle(await loadPortfolios(committee));
+  let assigned = null;
+
+  await runTransaction(db, async (tx) => {
+    const delegateRef  = doc(db, 'delegates', uid);
+    const delegateSnap = await tx.get(delegateRef);
+
+    if (!delegateSnap.exists())         throw new Error('DELEGATE_NOT_FOUND');
+    if (delegateSnap.data().allocated)  throw new Error('ALREADY_ALLOCATED');
+
+    for (const p of portfolios) {
+      const q    = query(collection(db, 'delegates'),
+        where('committeePreference','==', committee),
+        where('portfolio','==', p),
+        where('allocated','==', true));
+      const snap = await getDocs(q);
+      if (snap.empty) { assigned = p; break; }
+    }
+
+    if (!assigned) throw new Error('NO_PORTFOLIOS_AVAILABLE');
+
+    tx.update(delegateRef, {
+      allocated:           true,
+      portfolio:           assigned,
+      allocationTimestamp: serverTimestamp(),
+    });
+  });
+
+  return assigned;
+}
+const delegateId = localStorage.getItem("delegateId");
+
+if (!delegateId) {
+  window.location.href = "login.html";
+}
+
+const snap = await getDoc(
+  doc(db, "delegates", delegateId)
+);
+
+if (!snap.exists()) {
+  alert("Delegate record not found");
+  window.location.href = "login.html";
+}
+
+const d = snap.data();
+
+const sgUrl =
+  `${d.committeePreference}.pdf`;
+
+window.MUNITE.setDelegate({
+  name: d.name,
+  committee: d.committeePreference,
+  allocated: d.allocated,
+  portfolio: d.portfolio,
+  allocationTimestamp: d.allocationTimestamp,
+  pdfUrl: sgUrl,
+  studyGuideTitle: `${d.committeePreference} Study Guide`
+});
+window.__allocate = async () => {
+  try {
+    const portfolio = await allocate(
+      delegateId,
+      d.committeePreference
+    );
+
+    stopLoadingSequence();
+
+    window.MUNITE.revealAllocation(
+      portfolio,
+      d.committeePreference
+    );
+
+  } catch (err) {
+    stopLoadingSequence();
+
+    alert(err.message);
+
+    location.reload();
+  }
+};
+</script>
+</body>
+</html>
