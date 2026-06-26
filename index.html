@@ -429,58 +429,37 @@ html,body{
         <div class="corner corner-br"></div>
 
         <!-- STEP 1: DELEGATE ID (PHONE) -->
-        <div id="step1">
-          <div class="panel-eyebrow">Delegate Registry</div>
-          <div class="step-title">Identify Your Delegation</div>
-          <div class="step-desc">Present the mobile number by which your credentials are registered with the secretariat.</div>
-
+        <div id="phoneScreen">
+          <div class="panel-label">Enter Registered Phone Number</div>
           <div class="field">
-            <div class="field-label">Registered Delegate Number</div>
-            <input class="field-input" id="phoneInput" type="tel" inputmode="numeric"
-              placeholder="+91 00000 00000" maxlength="15"
-              onkeydown="if(event.key==='Enter')goStep2()">
+            <label>Phone Number</label>
+            <input class="code-input" type="tel" id="phoneInput" placeholder="+91 00000 00000" maxlength="15">
           </div>
-
-          <div class="error-msg" id="err1">
-            <svg class="error-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(220,150,140,0.7)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            <span id="err1msg">Please enter a valid phone number.</span>
-          </div>
-
-          <button class="action-btn" onclick="goStep2()">
-            Proceed to Verification
-          </button>
+          <button class="action-btn" id="phoneSubmitBtn">Continue</button>
+          <div class="error-msg" id="phoneError">Phone number not found. Please contact the Secretariat.</div>
         </div>
+
 
         <!-- STEP 2: DOB VERIFY -->
-        <div id="step2" style="display:none;">
-          <div class="panel-eyebrow">Credential Authentication</div>
-          <div class="step-title">Confirm Your Identity</div>
-          <div class="step-desc">Your date of birth is required to authenticate your delegate credentials against the official registry.</div>
-
+        <div id="dobScreen" style="display:none;">
+          <div class="panel-label">Verify Date of Birth</div>
           <div class="field">
-            <div class="field-label">Date of Birth</div>
-            <div class="date-row">
-              <input class="field-input" id="dobDay" type="text" inputmode="numeric"
-                placeholder="DD" maxlength="2" oninput="autoTab(this,'dobMonth',2)">
-              <input class="field-input" id="dobMonth" type="text" inputmode="numeric"
-                placeholder="MM" maxlength="2" oninput="autoTab(this,'dobYear',2)">
-              <input class="field-input" id="dobYear" type="text" inputmode="numeric"
-                placeholder="YYYY" maxlength="4" onkeydown="if(event.key==='Enter')doLogin()">
-            </div>
+            <label>Date of Birth</label>
+            <input class="field-input" type="date" id="dobInput" style="font-size:16px;letter-spacing:0.05em;">
           </div>
-
-          <div class="error-msg" id="err2">
-            <svg class="error-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(220,150,140,0.7)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            <span id="err2msg">Delegate not found. Check your credentials.</span>
-          </div>
-
-          <button class="action-btn" id="loginBtn" onclick="doLogin()">
-            Authenticate Credentials
-          </button>
-
-          <div class="back-link" onclick="goBack()">← Return to identification</div>
+          <button class="action-btn" id="dobSubmitBtn">Verify & Enter</button>
+          <div class="error-msg" id="dobError">Incorrect date of birth. Please try again.</div>
         </div>
-
+        <div id="registrationScreen" style="display:none;">
+          <div class="panel-label">First Login — Set Date of Birth</div>
+          <p class="reg-note">Welcome. This is your first login.<br>Please set your date of birth to secure your account.</p>
+          <div class="field">
+            <label>Date of Birth</label>
+            <input class="field-input" type="date" id="regDobInput" style="font-size:16px;letter-spacing:0.05em;">
+          </div>
+          <button class="action-btn" id="regSubmitBtn">Complete Registration</button>
+          <div class="error-msg" id="regError">Please enter your date of birth.</div>
+        </div>
       </div>
     </div>
   </div>
@@ -519,7 +498,7 @@ html,body{
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCeEFqHujlHHAkr8Bq7uOG8CTXYY1Vfd60",
@@ -536,8 +515,7 @@ html,body{
   window._db = db;
   window._firestoreDoc = doc;
   window._firestoreGetDoc = getDoc;
-</script>
-<script>
+
 // ════════════════════════════════════════════════════════
 // WORLD NETWORK CANVAS — Ceremonial Globe
 // ════════════════════════════════════════════════════════
@@ -762,109 +740,113 @@ setInterval(()=>{ ci = (ci+1)%coords.length; document.getElementById('coordDispl
 // ════════════════════════════════════════════════════════
 // STEP NAVIGATION
 // ════════════════════════════════════════════════════════
-function goStep2(){
-  const phone = document.getElementById('phoneInput').value.trim();
-  if(phone.length < 7){
-    showErr('err1','Please enter a valid phone number.');
-    document.getElementById('phoneInput').classList.add('error');
-    return;
-  }
-  clearErr('err1');
-  document.getElementById('phoneInput').classList.remove('error');
-
-  document.getElementById('sc1').classList.remove('active');
-  document.getElementById('sc1').classList.add('done');
-  document.getElementById('sc1').innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(212,175,55,0.8)" stroke-width="1.5"><polyline points="20 6 9 17 4 12"/></svg>`;
-  document.getElementById('sl1').classList.remove('active');
-  document.getElementById('line1').classList.add('done');
-  document.getElementById('sc2').classList.add('active');
-  document.getElementById('sl2').classList.add('active');
-
-  document.getElementById('step1').style.display = 'none';
-  document.getElementById('step2').style.display = 'block';
-  document.getElementById('dobDay').focus();
-}
-
-function goBack(){
-  document.getElementById('sc2').classList.remove('active');
-  document.getElementById('sl2').classList.remove('active');
-  document.getElementById('sc1').classList.remove('done');
-  document.getElementById('sc1').classList.add('active');
-  document.getElementById('sc1').innerHTML = '<span style="font-style:normal;font-size:9px;letter-spacing:0.05em;">I</span>';
-  document.getElementById('sl1').classList.add('active');
-  document.getElementById('line1').classList.remove('done');
-  clearErr('err2');
-
-  document.getElementById('step2').style.display = 'none';
-  document.getElementById('step1').style.display = 'block';
-  document.getElementById('phoneInput').focus();
-}
-
-function autoTab(el, nextId, maxLen){
-  if(el.value.length >= maxLen) document.getElementById(nextId).focus();
-}
 
 // ════════════════════════════════════════════════════════
 // LOGIN HANDLER
 // ════════════════════════════════════════════════════════
-async function doLogin(){
-  const btn = document.getElementById('loginBtn');
-  const phone = document.getElementById('phoneInput').value.trim();
-  const day   = document.getElementById('dobDay').value.padStart(2,'0');
-  const month = document.getElementById('dobMonth').value.padStart(2,'0');
-  const year  = document.getElementById('dobYear').value;
+let delegateData = null;
+let delegatePhone = null;
 
-  if(!day||!month||!year||year.length<4){
-    showErr('err2','Please enter a complete date of birth.');
-    return;
-  }
-  const dob = `${day}${month}${year}`;
-
-  btn.disabled = true;
-  btn.textContent = 'Authenticating…';
-  clearErr('err2');
-
-  try {
-    const db = window._db;
-    const docFn = window._firestoreDoc;
-    const getDocFn = window._firestoreGetDoc;
-
-    const delegateRef = docFn(db, 'delegates', phone);
-    const delegateSnap = await getDocFn(delegateRef);
-
-    if(!delegateSnap.exists()){
-      showErr('err2','No delegate found with this phone number.');
-      btn.disabled = false; btn.textContent = 'Authenticate Credentials';
-      return;
-    }
-
-    const delegate = delegateSnap.data();
-
-    if(delegate.dob !== dob){
-      showErr('err2','Date of birth does not match our records.');
-      btn.disabled = false; btn.textContent = 'Authenticate Credentials';
-      return;
-    }
-
-    localStorage.setItem('delegateId', phone);
-
-    document.getElementById('sc2').classList.remove('active');
-    document.getElementById('sc2').classList.add('done');
-    document.getElementById('sc2').innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(212,175,55,0.8)" stroke-width="1.5"><polyline points="20 6 9 17 4 12"/></svg>`;
-    document.getElementById('sl2').classList.remove('active');
-    document.getElementById('line2').classList.add('done');
-    document.getElementById('sc3').classList.add('active');
-    document.getElementById('sl3').classList.add('active');
-
-    triggerAccess(delegate.name, delegate.committeePreference || 'Unassigned');
-
-  } catch(e){
-    showErr('err2','Something went wrong. Please try again.');
-    btn.disabled = false; btn.textContent = 'Authenticate Credentials';
-    console.error('Login error:', e);
-  }
+function showError(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.style.display = "block";
+}
+function hideError(id) {
+  document.getElementById(id).style.display = "none";
 }
 
+// STEP 1: Phone lookup
+document.getElementById("phoneSubmitBtn").addEventListener("click", async () => {
+  hideError("phoneError");
+  const phone = document.getElementById("phoneInput").value.trim();
+  if (!phone) { showError("phoneError", "Please enter your phone number."); return; }
+
+  try {
+    const snap = await getDoc(doc(db, "delegates", phone));
+    if (!snap.exists()) {
+      showError("phoneError", "Phone number not found. Please contact the Secretariat.");
+      return;
+    }
+    delegateData = snap.data();
+    delegatePhone = phone;
+
+    const isFirstLogin = !delegateData.isRegistered || delegateData.dob === "" || delegateData.dob == null;
+
+    document.getElementById("phoneScreen").style.display = "none";
+
+    if (isFirstLogin) {
+      document.getElementById("registrationScreen").style.display = "block";
+    } else {
+      document.getElementById("dobScreen").style.display = "block";
+    }
+  } catch(err) {
+    console.error(err);
+    showError("phoneError", "An error occurred. Please try again.");
+  }
+});
+
+// STEP 2: DOB verification (returning delegates)
+document.getElementById("dobSubmitBtn").addEventListener("click", async () => {
+  hideError("dobError");
+  const dobRaw = document.getElementById("dobInput").value;
+  if (!dobRaw) { showError("dobError", "Please enter your date of birth."); return; }
+
+  const parts = dobRaw.split("-");
+  const dobFormatted = parts[2] + parts[1] + parts[0];
+
+  if (dobFormatted !== delegateData.dob) {
+    showError("dobError", "Incorrect date of birth. Please try again.");
+    return;
+  }
+
+    triggerAccess(
+      delegateData.name,
+      delegateData.committeePreference
+  );
+  return;
+  localStorage.setItem("delegateId", delegatePhone);
+  triggerAccess(
+    delegateData.name,
+    delegateData.committeePreference
+);
+return;
+});
+
+// STEP 3: Registration (first login)
+document.getElementById("regSubmitBtn").addEventListener("click", async () => {
+  hideError("regError");
+  const dobRaw = document.getElementById("regDobInput").value;
+  if (!dobRaw) { showError("regError", "Please enter your date of birth."); return; }
+
+  const parts = dobRaw.split("-");
+  const dobFormatted = parts[2] + parts[1] + parts[0];
+
+  try {
+        triggerAccess(
+        delegateData.name,
+        delegateData.committeePreference
+    );
+    return;
+    await updateDoc(doc(db, "delegates", delegatePhone), {
+      dob: dobFormatted,
+      isRegistered: true
+    });
+    localStorage.setItem("delegateId", delegatePhone);
+    setTimeout(() => { triggerAccess(
+    delegateData.name,
+    delegateData.committeePreference
+); }, 1400);
+  } catch(err) {
+    console.error(err);
+        triggerAccess(
+        delegateData.name,
+        delegateData.committeePreference
+    );
+    return;
+    showError("regError", "Failed to complete registration. Please try again.");
+  }
+});
 // ════════════════════════════════════════════════════════
 // ACCESS GRANTED SEQUENCE
 // ════════════════════════════════════════════════════════
@@ -878,6 +860,10 @@ function triggerAccess(name, committee){
   setTimeout(() => {
     document.body.style.transition = 'opacity 0.5s';
     document.body.style.opacity = '0';
+    localStorage.setItem(
+    "delegateId",
+    delegatePhone
+);
     setTimeout(() => window.location.href = 'dashboard.html', 500);
   }, 2800);
 }
