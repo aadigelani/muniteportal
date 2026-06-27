@@ -512,10 +512,6 @@ html,body{
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  window._db = db;
-  window._firestoreDoc = doc;
-  window._firestoreGetDoc = getDoc;
-
 // ════════════════════════════════════════════════════════
 // WORLD NETWORK CANVAS — Ceremonial Globe
 // ════════════════════════════════════════════════════════
@@ -738,10 +734,6 @@ let ci = 0;
 setInterval(()=>{ ci = (ci+1)%coords.length; document.getElementById('coordDisplay').textContent = coords[ci]; }, 4000);
 
 // ════════════════════════════════════════════════════════
-// STEP NAVIGATION
-// ════════════════════════════════════════════════════════
-
-// ════════════════════════════════════════════════════════
 // LOGIN HANDLER
 // ════════════════════════════════════════════════════════
 let delegateData = null;
@@ -800,17 +792,8 @@ document.getElementById("dobSubmitBtn").addEventListener("click", async () => {
     return;
   }
 
-    triggerAccess(
-      delegateData.name,
-      delegateData.committeePreference
-  );
-  return;
   localStorage.setItem("delegateId", delegatePhone);
-  triggerAccess(
-    delegateData.name,
-    delegateData.committeePreference
-);
-return;
+  triggerAccess(delegateData.name, delegateData.committeePreference);
 });
 
 // STEP 3: Registration (first login)
@@ -823,34 +806,22 @@ document.getElementById("regSubmitBtn").addEventListener("click", async () => {
   const dobFormatted = parts[2] + parts[1] + parts[0];
 
   try {
-        triggerAccess(
-        delegateData.name,
-        delegateData.committeePreference
-    );
-    return;
     await updateDoc(doc(db, "delegates", delegatePhone), {
       dob: dobFormatted,
       isRegistered: true
     });
     localStorage.setItem("delegateId", delegatePhone);
-    setTimeout(() => { triggerAccess(
-    delegateData.name,
-    delegateData.committeePreference
-); }, 1400);
+    triggerAccess(delegateData.name, delegateData.committeePreference);
   } catch(err) {
     console.error(err);
-        triggerAccess(
-        delegateData.name,
-        delegateData.committeePreference
-    );
-    return;
     showError("regError", "Failed to complete registration. Please try again.");
   }
 });
+
 // ════════════════════════════════════════════════════════
 // ACCESS GRANTED SEQUENCE
 // ════════════════════════════════════════════════════════
-function triggerAccess(name, committee){
+function triggerAccess(name, committee) {
   document.getElementById('accessName').textContent = `Welcome, ${name.split(' ')[0]}`;
   document.getElementById('accessCommittee').textContent = committee;
 
@@ -860,22 +831,9 @@ function triggerAccess(name, committee){
   setTimeout(() => {
     document.body.style.transition = 'opacity 0.5s';
     document.body.style.opacity = '0';
-    localStorage.setItem(
-    "delegateId",
-    delegatePhone
-);
     setTimeout(() => window.location.href = 'dashboard.html', 500);
   }, 2800);
 }
-
-// ════════════════════════════════════════════════════════
-// UTILS
-// ════════════════════════════════════════════════════════
-function showErr(id, msg){
-  document.getElementById(id.replace('err','err') + 'msg') && (document.getElementById(id+'msg').textContent = msg);
-  document.getElementById(id).classList.add('show');
-}
-function clearErr(id){ document.getElementById(id).classList.remove('show'); }
 </script>
 </body>
 </html>
