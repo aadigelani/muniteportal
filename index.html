@@ -202,6 +202,52 @@ html,body{
   letter-spacing:0.06em;
   -webkit-appearance:none;border-radius:0;
 }
+.phone-input-wrap{
+    display:flex;
+    align-items:center;
+    border:1px solid rgba(212,175,55,.16);
+    background:rgba(255,255,255,.025);
+    transition:.3s;
+}
+
+.phone-input-wrap:focus-within{
+    border-color:rgba(212,175,55,.55);
+    background:rgba(212,175,55,.04);
+    box-shadow:
+        0 0 0 1px rgba(212,175,55,.15),
+        0 0 18px rgba(212,175,55,.08);
+}
+
+.phone-prefix{
+    padding:0 16px;
+    height:46px;
+    display:flex;
+    align-items:center;
+    color:var(--champagne);
+    border-right:1px solid rgba(212,175,55,.12);
+    font-size:14px;
+    letter-spacing:.08em;
+    font-family:'Palatino Linotype',Georgia,serif;
+}
+
+.phone-input{
+    border:none;
+    background:transparent;
+    padding:0 16px;
+    height:46px;
+    letter-spacing:.12em;
+    font-size:17px;
+}
+
+.phone-input:focus{
+    border:none;
+    background:transparent;
+}
+
+.phone-input::placeholder{
+    color:rgba(184,179,168,.28);
+    letter-spacing:.18em;
+}
 .field-input::placeholder{color:rgba(184,179,168,0.2);letter-spacing:0.08em;}
 .field-input:focus{
   border-color:rgba(212,175,55,0.45);
@@ -430,13 +476,36 @@ html,body{
 
         <!-- STEP 1: DELEGATE ID (PHONE) -->
         <div id="phoneScreen">
-          <div class="panel-label">Enter Registered Phone Number</div>
-          <div class="field">
-            <label>Phone Number</label>
-            <input class="code-input" type="tel" id="phoneInput" placeholder="+91 00000 00000" maxlength="15">
+          <div class="panel-eyebrow">
+            Delegate Registry
           </div>
-          <button class="action-btn" id="phoneSubmitBtn">Continue</button>
-          <div class="error-msg" id="phoneError">Phone number not found. Please contact the Secretariat.</div>
+          <div class="step-title">
+            Identify Your Delegation
+          </div>
+          <div class="step-desc">
+            Enter the mobile number used during registration with the Secretariat.
+          </div>
+          <div class="field">
+            <div class="field-label">
+              Registered Mobile Number
+            </div>
+            <div class="phone-input-wrap">
+              <span class="phone-prefix">
+                +91
+              </span>
+              <input
+                class="field-input phone-input"
+                id="phoneInput"
+                type="tel"
+                maxlength="10"
+                inputmode="numeric"
+                placeholder="9876543210">
+            </div>
+          </div>
+          <button class="action-btn" id="phoneSubmitBtn">
+            Continue
+          </button>
+          <div class="error-msg" id="phoneError"></div>
         </div>
 
 
@@ -817,7 +886,15 @@ document.getElementById("regSubmitBtn").addEventListener("click", async () => {
     showError("regError", "Failed to complete registration. Please try again.");
   }
 });
+const phoneInput = document.getElementById("phoneInput");
 
+phoneInput.addEventListener("input", () => {
+
+    phoneInput.value = phoneInput.value
+        .replace(/\D/g,"")
+        .slice(0,10);
+
+});
 // ════════════════════════════════════════════════════════
 // ACCESS GRANTED SEQUENCE
 // ════════════════════════════════════════════════════════
