@@ -72,18 +72,62 @@
     -webkit-backdrop-filter: blur(24px) saturate(1.4);
     border-bottom: 1px solid var(--border);
   }
-  .nav-logo {
-    display: flex; align-items: center; gap: 10px;
+  .nav-logo{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    min-width:0;
   }
-  .logo-mark {
-    width: 32px; height: 32px;
-    background: linear-gradient(135deg, #7C3AED, #A855F7);
-    border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px; font-weight: 700; letter-spacing: -0.5px;
-    color: #fff;
-    position: relative;
-    box-shadow: 0 0 16px rgba(124,58,237,0.5);
+  .logo-mark{
+    width:42px;
+    height:42px;
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+
+    background:rgba(255,255,255,.04);
+
+    border:1px solid rgba(255,255,255,.08);
+
+    flex-shrink:0;
+
+    transition:.3s;
+  }
+
+  .logo-mark:hover{
+    border-color:rgba(168,85,247,.45);
+    box-shadow:0 0 20px rgba(168,85,247,.18);
+  }
+
+  .logo-mark img{
+    width:82%;
+    height:82%;
+    object-fit:contain;
+    display:block;
+  }
+    .logo-info{
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      min-width:0;
+      line-height:1.05;
+  }
+
+  .logo-text{
+      font-size:15px;
+      font-weight:700;
+      letter-spacing:.04em;
+      margin:0;
+  }
+
+  .logo-sub{
+      margin-top:2px;
+      font-size:10px;
+      color:var(--muted);
+      letter-spacing:.10em;
+      text-transform:uppercase;
   }
   .logo-mark::after {
     content: '';
@@ -421,7 +465,49 @@
   .allocation-spotlight { animation: fadeUp 0.6s 0.1s ease both; }
   .panel { animation: fadeUp 0.6s 0.2s ease both; }
   .future-grid { animation: fadeUp 0.6s 0.3s ease both; }
+  @media (max-width:640px){
 
+    nav{
+        padding:0 .9rem;
+        height:58px;
+    }
+
+    .nav-logo{
+        gap:10px;
+    }
+
+    .logo-mark{
+        width:34px;
+        height:34px;
+        border-radius:9px;
+        flex-shrink:0;
+    }
+
+    .logo-mark img{
+        width:78%;
+        height:78%;
+    }
+
+    .logo-text{
+        font-size:13px;
+        line-height:1;
+    }
+
+    .logo-sub{
+        font-size:8px;
+        letter-spacing:.08em;
+        margin-top:2px;
+    }
+
+    .nav-status{
+        display:none;
+    }
+
+    .nav-right{
+        gap:8px;
+    }
+
+  }
   /* ── DESKTOP ── */
   @media (min-width: 640px) {
     nav { padding: 0 2rem; }
@@ -445,8 +531,10 @@
   <!-- NAV -->
   <nav>
     <div class="nav-logo">
-      <div class="logo-mark">MU</div>
-      <div>
+      <div class="logo-mark">
+        <img src="MUNITE LOGO.png" alt="MUNITE Logo">
+      </div>
+      <div class="logo-info">
         <div class="logo-text">MUNITE</div>
         <div class="logo-sub">Delegate Portal</div>
       </div>
@@ -567,7 +655,7 @@
             <div class="notif-item">
               <div class="notif-dot-wrap"><div class="notif-dot read"></div></div>
               <div class="notif-content">
-                <div class="notif-title">Welcome to MUNITE 2025</div>
+                <div class="notif-title">Welcome to MUNITE 2026</div>
                 <div class="notif-msg">Your delegate account has been activated. Explore the portal and prepare for conference day.</div>
                 <div class="notif-time">3 days ago</div>
               </div>

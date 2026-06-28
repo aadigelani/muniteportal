@@ -92,14 +92,13 @@ body::after {
    MASTHEAD
    ═══════════════════════════════════════════════════ */
 
-.masthead {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  padding: 36px 0 0;
-  border-bottom: 1px solid var(--brass-line);
-  padding-bottom: 28px;
-  margin-bottom: 0;
+.masthead{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:24px;
+    padding:30px 0 24px;
+    border-bottom:1px solid var(--brass-line);
 }
 
 .masthead-left {
@@ -1034,7 +1033,53 @@ body::after {
    ═══════════════════════════════════════════════════ */
 
 .future-section { display: none; }
+.masthead-brand{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  flex:1;
+  min-width:0;
+}
+.masthead-brand img{
+  width:52px;
+  height:52px;
+  object-fit:contain;
+  flex-shrink:0;
+  display:block;
+}
 
+@media(max-width:600px){
+
+  .masthead{
+      padding:22px 0 18px;
+      align-items:center;
+  }
+
+  .masthead-brand{
+      gap:12px;
+      width:100%;
+  }
+
+  .masthead-brand img{
+      width:40px;
+      height:40px;
+  }
+
+  .masthead-pre{
+      font-size:.52rem;
+      letter-spacing:.22em;
+  }
+
+  .masthead-wordmark{
+      font-size:1.35rem;
+      letter-spacing:.08em;
+  }
+
+  .masthead-sub{
+      font-size:.68rem;
+  }
+
+}
 /* ═══════════════════════════════════════════════════
    MOBILE
    ═══════════════════════════════════════════════════ */
@@ -1073,14 +1118,25 @@ body::after {
 
   <!-- ══ MASTHEAD ════════════════════════════════════ -->
   <div class="masthead">
-    <div class="masthead-left">
-      <div class="masthead-pre">Diplomatic Registry</div>
-      <div class="masthead-wordmark">MUNITE</div>
-      <div class="masthead-sub">Model United Nations Integrated</div>
-    </div>
-    <div class="masthead-right">
-      <div class="masthead-date" id="masthead-date">—</div>
-      <div class="masthead-session">Plenary Session 2025</div>
+    <div class="masthead-brand">
+
+      <img src="MUNITE LOGO.png" alt="MUNITE Logo">
+
+      <div>
+
+          <div class="masthead-pre">
+              Diplomatic Registry
+          </div>
+
+          <div class="masthead-wordmark">
+              MUNITE
+          </div>
+
+          <div class="masthead-sub">
+              Model United Nations Integrated
+          </div>
+
+      </div>
     </div>
   </div>
 
