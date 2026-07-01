@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>MUNITE — Conference Day</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root {
+    --bg: #09090B;
+    --surface: #121218;
+    --surface2: #1A1A24;
+    --primary: #7C3AED;
+    --accent: #A855F7;
+    --glow: #C084FC;
+    --text: #F8FAFC;
+    --muted: #94A3B8;
+    --border: rgba(124,58,237,0.18);
+    --border2: rgba(168,85,247,0.12);
+    --glass: rgba(18,18,24,0.72);
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── AMBIENT BACKGROUND ── */
+  .ambient {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    overflow: hidden;
+  }
+  .ambient-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.18;
+    animation: drift 18s ease-in-out infinite alternate;
+  }
+  .orb1 { width: 600px; height: 600px; background: #7C3AED; top: -200px; left: -150px; animation-delay: 0s; }
+  .orb2 { width: 400px; height: 400px; background: #A855F7; bottom: -100px; right: -100px; animation-delay: -6s; }
+  .orb3 { width: 300px; height: 300px; background: #6D28D9; top: 40%; left: 30%; animation-delay: -12s; opacity: 0.10; }
+
+  @keyframes drift {
+    from { transform: translate(0, 0) scale(1); }
+    to   { transform: translate(40px, 30px) scale(1.08); }
+  }
+
+  #particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.5; }
+
+  .shell {
+    position: relative; z-index: 1;
+    min-height: 100dvh;
+    display: flex; flex-direction: column;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 1.25rem;
+    height: 56px;
+    background: rgba(9,9,11,0.8);
+    backdrop-filter: blur(24px) saturate(1.4);
+    -webkit-backdrop-filter: blur(24px) saturate(1.4);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo{ display:flex; align-items:center; gap:12px; min-width:0; }
+  .logo-mark{
+    width:42px; height:42px; border-radius:12px;
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden; position:relative;
+    background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.08);
+    flex-shrink:0; transition:.3s;
+  }
+  .logo-mark:hover{ border-color:rgba(168,85,247,.45); box-shadow:0 0 20px rgba(168,85,247,.18); }
+  .logo-mark img{ width:82%; height:82%; object-fit:contain; display:block; }
+  .logo-info{ display:flex; flex-direction:column; justify-content:center; min-width:0; line-height:1.05; }
+  .logo-text{ font-size:15px; font-weight:600; letter-spacing:.04em; color:var(--text); }
+  .logo-sub{ margin-top:2px; font-size:10px; color:var(--muted); letter-spacing:.10em; text-transform:uppercase; }
+  .logo-mark::after {
+    content: ''; position: absolute; inset: -1px; border-radius: 9px;
+    border: 1px solid rgba(192,132,252,0.4); pointer-events: none;
+  }
+
+  .nav-right { display: flex; align-items: center; gap: 10px; }
+  .nav-status {
+    display: flex; align-items: center; gap: 6px;
+    padding: 4px 10px;
+    background: rgba(16,185,129,0.08);
+    border: 1px solid rgba(16,185,129,0.2);
+    border-radius: 20px;
+    font-size: 11px; color: #10B981;
+    font-weight: 500;
+  }
+  .nav-status.ended { background: rgba(148,163,184,0.08); border-color: rgba(148,163,184,0.2); color: var(--muted); }
+  .status-dot {
+    width: 6px; height: 6px; border-radius: 50%; background: #10B981;
+    box-shadow: 0 0 8px #10B981;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .nav-status.ended .status-dot { background: var(--muted); box-shadow: none; animation: none; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  .nav-notif {
+    position: relative; cursor: pointer;
+    width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .nav-notif:hover { border-color: var(--accent); background: var(--surface2); }
+  .nav-notif svg { width: 16px; height: 16px; stroke: var(--muted); }
+  .notif-badge {
+    position: absolute; top: -4px; right: -4px;
+    width: 14px; height: 14px;
+    background: var(--accent);
+    border-radius: 50%;
+    border: 2px solid var(--bg);
+    font-size: 8px; font-weight: 700; color: #fff;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .nav-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(135deg, #7C3AED, #C084FC);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600; color: #fff;
+    border: 1.5px solid rgba(192,132,252,0.3);
+  }
+
+  /* ── MAIN ── */
+  .main {
+    flex: 1;
+    padding: 1.25rem;
+    display: flex; flex-direction: column; gap: 1.25rem;
+    max-width: 100%;
+  }
+
+  /* ── WAITING / ENDED SCREEN ── */
+  .gate {
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    min-height: 340px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    gap: 14px;
+  }
+  .gate::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(124,58,237,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .gate-icon {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: linear-gradient(135deg, #7C3AED, #C084FC);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 40px rgba(124,58,237,0.4);
+    margin-bottom: 6px;
+  }
+  .gate-icon svg { width: 28px; height: 28px; stroke: #fff; }
+  .gate.ended .gate-icon { background: linear-gradient(135deg, #475569, #94A3B8); box-shadow: 0 0 40px rgba(148,163,184,0.25); }
+  .gate-title { font-size: 1.4rem; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
+  .gate-sub { font-size: 13px; color: var(--muted); max-width: 320px; line-height: 1.6; }
+  .gate-pulse {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; margin-top: 6px;
+    background: rgba(168,85,247,0.1);
+    border: 1px solid rgba(168,85,247,0.25);
+    border-radius: 20px;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent);
+  }
+  .gate-pulse-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 6px var(--accent); animation: pulse 1.5s infinite; }
+
+  /* ── ID PASS CARD ── */
+  .pass-card {
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    background: linear-gradient(145deg, #1A0A2E, #12101E);
+    border: 1px solid rgba(168,85,247,0.35);
+    padding: 1.5rem;
+    animation: fadeUp 0.6s ease both;
+  }
+  .pass-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(168,85,247,0.18) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .pass-header { display:flex; align-items:center; justify-content:space-between; margin-bottom: 1.1rem; position: relative; z-index: 1; }
+  .pass-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px;
+    background: rgba(168,85,247,0.12);
+    border: 1px solid rgba(168,85,247,0.3);
+    border-radius: 20px;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent);
+  }
+  .pass-badge-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 6px var(--accent); animation: pulse 1.5s infinite; }
+  .pass-id { font-size: 10px; color: var(--muted); font-family: monospace; letter-spacing: 0.05em; }
+
+  .pass-id-row { display:flex; align-items:center; gap:14px; margin-bottom: 1.25rem; position: relative; z-index: 1; }
+  .pass-avatar {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: linear-gradient(135deg, #7C3AED, #C084FC);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 19px; font-weight: 700; color: #fff;
+    flex-shrink: 0;
+    border: 2px solid rgba(192,132,252,0.3);
+    box-shadow: 0 0 24px rgba(124,58,237,0.3);
+  }
+  .pass-name { font-size: 1.2rem; font-weight: 700; color: var(--text); letter-spacing: -0.01em; line-height: 1.2; }
+  .pass-role { font-size: 12px; color: var(--accent); margin-top: 2px; }
+
+  .pass-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px;
+    position: relative; z-index: 1;
+  }
+  .pass-field-label { font-size: 9px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 3px; }
+  .pass-field-value { font-size: 13px; color: var(--text); font-weight: 500; word-break: break-word; }
+  .pass-field-value.status-confirmed { color: #10B981; }
+  .pass-field-value.status-pending { color: #F59E0B; }
+
+  /* ── QR PANEL ── */
+  .qr-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+  .qr-box {
+    background: #fff;
+    padding: 14px;
+    border-radius: 16px;
+    box-shadow: 0 0 40px rgba(168,85,247,0.25);
+    display: flex; align-items: center; justify-content: center;
+    width: min(240px, 70vw);
+    height: min(240px, 70vw);
+  }
+  .qr-box img, .qr-box canvas { width: 100% !important; height: 100% !important; }
+  .qr-caption { font-size: 12px; color: var(--muted); text-align: center; max-width: 260px; }
+  .qr-caption strong { color: var(--text); font-weight: 600; }
+
+  /* ── ENTRY STATUS ── */
+  .entry-status {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(16,185,129,0.08);
+    border: 1px solid rgba(16,185,129,0.2);
+    margin-top: 4px;
+    width: 100%;
+  }
+  .entry-status.pending { background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.2); }
+  .entry-status-icon {
+    width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(16,185,129,0.15);
+  }
+  .entry-status.pending .entry-status-icon { background: rgba(245,158,11,0.15); }
+  .entry-status-icon svg { width: 15px; height: 15px; stroke: #10B981; }
+  .entry-status.pending .entry-status-icon svg { stroke: #F59E0B; }
+  .entry-status-text { flex: 1; min-width: 0; }
+  .entry-status-title { font-size: 13px; font-weight: 600; color: #10B981; }
+  .entry-status.pending .entry-status-title { color: #F59E0B; }
+  .entry-status-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+  /* ── GLASS PANEL (reused) ── */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    animation: fadeUp 0.6s 0.15s ease both;
+  }
+  .panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border2);
+  }
+  .panel-title-row { display: flex; align-items: center; gap: 8px; }
+  .panel-icon {
+    width: 28px; height: 28px; border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(124,58,237,0.15);
+    border: 1px solid rgba(124,58,237,0.25);
+  }
+  .panel-icon svg { width: 14px; height: 14px; stroke: var(--accent); }
+  .panel-title { font-size: 13px; font-weight: 600; color: var(--text); }
+  .panel-body { padding: 1.25rem; }
+
+  .two-col { display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
+
+  /* ── COMMITTEE INFO ── */
+  .info-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .info-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .info-row:first-child { padding-top: 0; }
+  .info-label { font-size: 11px; color: var(--muted); flex-shrink: 0; }
+  .info-value { font-size: 13px; color: var(--text); font-weight: 500; text-align: right; }
+  .info-value a { color: var(--accent); text-decoration: none; }
+  .info-value a:hover { text-decoration: underline; }
+
+  /* ── NOTIFICATIONS (reused) ── */
+  .notif-feed { display: flex; flex-direction: column; gap: 0; }
+  .notif-item {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .notif-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .notif-dot-wrap { padding-top: 4px; flex-shrink: 0; }
+  .notif-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+  .notif-content { flex: 1; min-width: 0; }
+  .notif-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .notif-msg { font-size: 12px; color: var(--muted); line-height: 1.4; }
+  .notif-time { font-size: 10px; color: rgba(148,163,184,0.5); margin-top: 4px; }
+  .notif-scope { display:inline-block; font-size:9px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color: var(--accent); background: rgba(168,85,247,0.1); border:1px solid rgba(168,85,247,0.25); padding:1px 6px; border-radius:8px; margin-bottom:4px; }
+  .notif-empty { font-size: 12px; color: var(--muted); text-align: center; padding: 10px 0; }
+
+  /* ── LIVE INFO GRID ── */
+  .live-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .live-cell {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border2);
+    border-radius: 12px;
+    padding: 12px;
+  }
+  .live-cell-label { font-size: 9px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
+  .live-cell-value { font-size: 14px; font-weight: 600; color: var(--text); }
+  .live-cell-value.accent { color: var(--accent); }
+
+  /* ── EMERGENCY ── */
+  .emergency-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .emergency-cell {
+    background: rgba(239,68,68,0.05);
+    border: 1px solid rgba(239,68,68,0.18);
+    border-radius: 12px;
+    padding: 12px;
+  }
+  .emergency-label { font-size: 10px; font-weight: 600; color: #F87171; letter-spacing: 0.04em; margin-bottom: 4px; }
+  .emergency-value { font-size: 13px; color: var(--text); }
+
+  /* ── FUTURE MODULES (reused) ── */
+  .future-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+  }
+  .future-module {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 14px;
+    padding: 14px 12px;
+    display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+    position: relative; overflow: hidden;
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+  .future-module::after {
+    content: 'SOON';
+    position: absolute; top: 8px; right: 8px;
+    font-size: 8px; font-weight: 700; letter-spacing: 0.1em;
+    color: var(--muted); background: rgba(255,255,255,0.05);
+    padding: 2px 5px; border-radius: 4px;
+  }
+  .future-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: rgba(124,58,237,0.08);
+    border: 1px solid rgba(124,58,237,0.15);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .future-icon svg { width: 15px; height: 15px; stroke: var(--muted); }
+  .future-name { font-size: 12px; font-weight: 500; color: var(--muted); }
+
+  .section-header { display: flex; align-items: center; gap: 8px; margin-bottom: 0.75rem; }
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .section-line { flex: 1; height: 1px; background: linear-gradient(90deg, var(--border2), transparent); }
+
+  .readonly-banner {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 14px;
+    background: rgba(148,163,184,0.06);
+    border: 1px solid rgba(148,163,184,0.18);
+    border-radius: 12px;
+    font-size: 12px; color: var(--muted);
+  }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--surface2); border: 1px solid rgba(16,185,129,0.3);
+    color: #10B981; font-size: 12px; font-weight: 500;
+    padding: 8px 16px; border-radius: 20px;
+    opacity: 0; transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none; white-space: nowrap;
+    z-index: 200;
+    box-shadow: 0 0 20px rgba(16,185,129,0.15);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .hidden { display: none !important; }
+
+  @media (max-width:640px){
+    nav{ padding:0 .9rem; height:58px; }
+    .nav-logo{ gap:10px; }
+    .logo-mark{ width:34px; height:34px; border-radius:9px; }
+    .logo-mark img{ width:78%; height:78%; }
+    .logo-text{ font-size:13px; line-height:1; }
+    .logo-sub{ font-size:8px; letter-spacing:.08em; margin-top:2px; }
+    .nav-status{ display:none; }
+    .nav-right{ gap:8px; }
+    .pass-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (min-width: 640px) {
+    nav { padding: 0 2rem; }
+    .main { padding: 1.5rem 2rem; max-width: 760px; margin: 0 auto; }
+    .two-col { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="ambient">
+  <div class="ambient-orb orb1"></div>
+  <div class="ambient-orb orb2"></div>
+  <div class="ambient-orb orb3"></div>
+</div>
+
+<div class="shell">
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-logo">
+      <div class="logo-mark">
+        <img src="MUNITE LOGO.png" alt="MUNITE Logo">
+      </div>
+      <div class="logo-info">
+        <div class="logo-text">MUNITE</div>
+        <div class="logo-sub">Conference Day</div>
+      </div>
+    </div>
+    <div class="nav-right">
+      <div class="nav-status" id="navStatus">
+        <div class="status-dot"></div>
+        <span id="navStatusText">Live</span>
+      </div>
+      <div class="nav-notif" onclick="scrollToNotif()">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.75"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+        <div class="notif-badge" id="notifBadge">0</div>
+      </div>
+      <div class="nav-avatar" id="userInitials">--</div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- WAITING SCREEN -->
+    <div class="gate hidden" id="gateWaiting">
+      <div class="gate-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.75"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+      </div>
+      <div class="gate-title">Conference Not Started</div>
+      <div class="gate-sub">The Secretariat has not started the conference yet. Please wait.</div>
+      <div class="gate-pulse"><div class="gate-pulse-dot"></div> Waiting for Secretariat</div>
+    </div>
+
+    <!-- ENDED BANNER (shown above unlocked content when conference has ended) -->
+    <div class="gate ended hidden" id="gateEnded" style="min-height:auto; padding:1.75rem 1.5rem;">
+      <div class="gate-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.75"><path d="M5 13l4 4L19 7"/></svg>
+      </div>
+      <div class="gate-title">Conference Ended</div>
+      <div class="gate-sub">Thank you for participating.</div>
+    </div>
+
+    <!-- UNLOCKED CONTENT -->
+    <div id="conferenceContent" class="hidden">
+
+      <div style="display:flex; flex-direction:column; gap:1.25rem;">
+
+        <!-- DIGITAL CONFERENCE PASS -->
+        <div class="pass-card">
+          <div class="pass-header">
+            <div class="pass-badge"><div class="pass-badge-dot"></div> Digital Pass</div>
+            <div class="pass-id" id="passConfName">MUNITE 2026</div>
+          </div>
+          <div class="pass-id-row">
+            <div class="pass-avatar" id="passAvatar">--</div>
+            <div>
+              <div class="pass-name" id="passName">—</div>
+              <div class="pass-role" id="passPortfolio">—</div>
+            </div>
+          </div>
+          <div class="pass-grid">
+            <div>
+              <div class="pass-field-label">Institution</div>
+              <div class="pass-field-value" id="passInstitution">—</div>
+            </div>
+            <div>
+              <div class="pass-field-label">Committee</div>
+              <div class="pass-field-value" id="passCommittee">—</div>
+            </div>
+            <div>
+              <div class="pass-field-label">Phone</div>
+              <div class="pass-field-value" id="passPhone">—</div>
+            </div>
+            <div>
+              <div class="pass-field-label">Delegate ID</div>
+              <div class="pass-field-value" id="passDelegateId" style="font-family:monospace; font-size:11px;">—</div>
+            </div>
+            <div>
+              <div class="pass-field-label">Registration</div>
+              <div class="pass-field-value" id="passRegStatus">—</div>
+            </div>
+            <div>
+              <div class="pass-field-label">Conference</div>
+              <div class="pass-field-value" id="passConfNameGrid">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- QR PASS -->
+        <div class="qr-panel">
+          <div class="qr-box" id="qrBox"></div>
+          <div class="qr-caption"><strong>Present this QR at Conference Entry</strong></div>
+          <div class="entry-status" id="entryStatus">
+            <div class="entry-status-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg>
+            </div>
+            <div class="entry-status-text">
+              <div class="entry-status-title" id="entryStatusTitle">Awaiting Conference Entry</div>
+              <div class="entry-status-sub" id="entryStatusSub">Your QR has not been scanned yet</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LIVE CONFERENCE INFO -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title-row">
+              <div class="panel-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.75"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+              </div>
+              <div class="panel-title">Live Conference Info</div>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="live-grid">
+              <div class="live-cell">
+                <div class="live-cell-label">Status</div>
+                <div class="live-cell-value accent" id="liveStatus">—</div>
+              </div>
+              <div class="live-cell">
+                <div class="live-cell-label">Current Session</div>
+                <div class="live-cell-value" id="liveSession">—</div>
+              </div>
+              <div class="live-cell">
+                <div class="live-cell-label">Current Time</div>
+                <div class="live-cell-value" id="liveTime">—</div>
+              </div>
+              <div class="live-cell">
+                <div class="live-cell-label">Conference Date</div>
+                <div class="live-cell-value" id="liveDate">—</div>
+              </div>
+              <div class="live-cell" style="grid-column: 1 / -1;">
+                <div class="live-cell-label">Venue</div>
+                <div class="live-cell-value" id="liveVenue">—</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MY COMMITTEE -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title-row">
+              <div class="panel-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.75"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg>
+              </div>
+              <div class="panel-title">My Committee</div>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="info-row"><div class="info-label">Committee</div><div class="info-value" id="cmtName">—</div></div>
+            <div class="info-row"><div class="info-label">Portfolio</div><div class="info-value" id="cmtPortfolio">—</div></div>
+            <div class="info-row"><div class="info-label">Agenda</div><div class="info-value" id="cmtAgenda">—</div></div>
+            <div class="info-row"><div class="info-label">Study Guide</div><div class="info-value" id="cmtStudyGuide">—</div></div>
+            <div class="info-row"><div class="info-label">Room Number</div><div class="info-value" id="cmtRoom">—</div></div>
+            <div class="info-row"><div class="info-label">Chair</div><div class="info-value" id="cmtChair">—</div></div>
+            <div class="info-row"><div class="info-label">Vice Chair</div><div class="info-value" id="cmtViceChair">—</div></div>
+          </div>
+        </div>
+
+        <!-- NOTIFICATIONS -->
+        <div class="panel" id="notifPanel">
+          <div class="panel-header">
+            <div class="panel-title-row">
+              <div class="panel-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.75"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+              </div>
+              <div class="panel-title">Notifications</div>
+            </div>
+          </div>
+          <div class="panel-body" style="padding-top:0.5rem; padding-bottom:0.5rem;">
+            <div class="notif-feed" id="notifFeed">
+              <div class="notif-empty">No notifications yet</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- EMERGENCY -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title-row">
+              <div class="panel-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.75"><path d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-8.25 3.75h.008v.008h-.008v-.008z"/></svg>
+              </div>
+              <div class="panel-title">Emergency &amp; Support</div>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="emergency-grid">
+              <div class="emergency-cell">
+                <div class="emergency-label">Help Desk</div>
+                <div class="emergency-value">+91 00000 00001</div>
+              </div>
+              <div class="emergency-cell">
+                <div class="emergency-label">Secretariat Desk</div>
+                <div class="emergency-value">+91 00000 00002</div>
+              </div>
+              <div class="emergency-cell">
+                <div class="emergency-label">Medical Support</div>
+                <div class="emergency-value">+91 00000 00003</div>
+              </div>
+              <div class="emergency-cell">
+                <div class="emergency-label">Emergency Contact</div>
+                <div class="emergency-value">+91 00000 00004</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FUTURE MODULES -->
+        <div>
+          <div class="section-header">
+            <div class="section-label">Coming Soon</div>
+            <div class="section-line"></div>
+          </div>
+          <div class="future-grid">
+            <div class="future-module">
+              <div class="future-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.75"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              </div>
+              <div class="future-name">Roll Call</div>
+            </div>
+            <div class="future-module">
+              <div class="future-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.75"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+              </div>
+              <div class="future-name">Voting</div>
+            </div>
+            <div class="future-module">
+              <div class="future-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.75"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+              </div>
+              <div class="future-name">Committee Docs</div>
+            </div>
+            <div class="future-module">
+              <div class="future-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.75"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+              </div>
+              <div class="future-name">Resolution Board</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <div style="height: 0.5rem;"></div>
+  </div>
+
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getFirestore, doc, getDoc, onSnapshot, collection, query, where, orderBy
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCeEFqHujlHHAkr8Bq7uOG8CTXYY1Vfd60",
+  authDomain: "munite-acf5d.firebaseapp.com",
+  projectId: "munite-acf5d",
+  storageBucket: "munite-acf5d.firebasestorage.app",
+  messagingSenderId: "785242774756",
+  appId: "1:785242774756:web:2aea5a47dd93d9fbd260f1"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+window.db = db;
+window.doc = doc;
+window.getDoc = getDoc;
+window.onSnapshot = onSnapshot;
+window.collection = collection;
+window.query = query;
+window.where = where;
+window.orderBy = orderBy;
+window.firestoreReady = true;
+window.dispatchEvent(new Event("firestore-ready"));
+</script>
+
+<script>
+// ── PARTICLE FIELD ──
+(function(){
+  const c = document.getElementById('particles');
+  const ctx = c.getContext('2d');
+  let W, H, pts = [];
+  function resize(){ W = c.width = innerWidth; H = c.height = innerHeight; }
+  resize(); window.addEventListener('resize', resize);
+  for(let i=0;i<60;i++){
+    pts.push({
+      x: Math.random()*2000, y: Math.random()*3000,
+      vx: (Math.random()-.5)*0.2, vy: (Math.random()-.5)*0.2,
+      r: Math.random()*1.4+0.3,
+      a: Math.random()
+    });
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    pts.forEach(p=>{
+      p.x += p.vx; p.y += p.vy;
+      if(p.x<0) p.x=W; if(p.x>W) p.x=0;
+      if(p.y<0) p.y=H; if(p.y>H) p.y=0;
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle = `rgba(168,85,247,${p.a*0.5})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ── TOAST ──
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+function scrollToNotif(){
+  document.getElementById('notifPanel').scrollIntoView({behavior:'smooth',block:'center'});
+}
+window.scrollToNotif = scrollToNotif;
+
+function initials(val){
+  return (val||'').split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2)||'?';
+}
+
+let delegateId = null;
+let qrRendered = false;
+let conferenceWasRunning = false;
+let currentCommitteeName = null;
+let committeeUnsub = null;
+let notifUnsub = null;
+
+function renderQR(id){
+  if(qrRendered) return;
+  const box = document.getElementById('qrBox');
+  box.innerHTML = '';
+  if(window.QRCode){
+    new QRCode(box, {
+      text: id,
+      width: 240,
+      height: 240,
+      colorDark: "#0a0a0f",
+      colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.H
+    });
+    qrRendered = true;
+  }
+}
+
+function isDelegateEntered(data){
+  return data.entered === true || data.checkedIn === true || !!data.entryTimestamp;
+}
+
+function applyPassData(data, id){
+  document.getElementById('passName').textContent = data.name || 'Delegate';
+  document.getElementById('passPortfolio').textContent = data.portfolio || data.committeePreference || data.committee || '—';
+  document.getElementById('passInstitution').textContent = data.institution || data.school || '—';
+  document.getElementById('passCommittee').textContent = data.committee || data.committeePreference || '—';
+  document.getElementById('passPhone').textContent = data.phone || '—';
+  document.getElementById('passDelegateId').textContent = id;
+  const regEl = document.getElementById('passRegStatus');
+  const entered = isDelegateEntered(data);
+  const status = entered ? 'Verified' : 'Pending';
+  regEl.textContent = status;
+  regEl.className = 'pass-field-value ' + (entered ? 'status-confirmed' : 'status-pending');
+  const confName = data.conferenceName || 'MUNITE 2026';
+  document.getElementById('passConfName').textContent = confName;
+  document.getElementById('passConfNameGrid').textContent = confName;
+
+  const init = initials(data.name);
+  document.getElementById('passAvatar').textContent = init;
+  document.getElementById('userInitials').textContent = init;
+}
+
+function applyEntryStatus(data){
+  const wrap = document.getElementById('entryStatus');
+  const title = document.getElementById('entryStatusTitle');
+  const sub = document.getElementById('entryStatusSub');
+  const entered = isDelegateEntered(data);
+  if(entered){
+    wrap.classList.remove('pending');
+    title.textContent = '✅ Entry Verified';
+    const ts = data.entryTimestamp || data.checkInTime;
+    let timeStr = '';
+    if(ts && ts.toDate){
+      timeStr = ts.toDate().toLocaleString();
+    } else if(ts){
+      timeStr = String(ts);
+    }
+    sub.textContent = timeStr ? `Verified at ${timeStr}` : 'Your entry has been confirmed';
+  } else {
+    wrap.classList.add('pending');
+    title.textContent = 'Awaiting Conference Entry';
+    sub.textContent = 'Your QR has not been scanned yet';
+  }
+}
+
+function loadCommittee(committeeId){
+  if(!committeeId) return;
+  if(committeeUnsub) committeeUnsub();
+  committeeUnsub = window.onSnapshot(window.doc(window.db, "committees", committeeId), (snap) => {
+    if(!snap.exists()) return;
+    const c = snap.data();
+    document.getElementById('cmtName').textContent = c.name || committeeId;
+    document.getElementById('cmtPortfolio').textContent = c.portfolio || '—';
+    document.getElementById('cmtAgenda').textContent = c.agenda || '—';
+    const sg = document.getElementById('cmtStudyGuide');
+    if(c.studyGuideUrl){
+      sg.innerHTML = `<a href="${c.studyGuideUrl}" target="_blank" rel="noopener">View Study Guide</a>`;
+    } else {
+      sg.textContent = c.studyGuide || '—';
+    }
+    document.getElementById('cmtRoom').textContent = c.room || c.roomNumber || '—';
+    document.getElementById('cmtChair').textContent = c.chair || '—';
+    document.getElementById('cmtViceChair').textContent = c.viceChair || '—';
+  });
+}
+
+function loadNotifications(committeeId){
+  const feed = document.getElementById('notifFeed');
+  const badge = document.getElementById('notifBadge');
+  if(notifUnsub) notifUnsub();
+
+  let q;
+  try {
+    q = window.query(
+      window.collection(window.db, "notifications"),
+      window.orderBy("timestamp", "desc")
+    );
+  } catch(e){
+    q = window.collection(window.db, "notifications");
+  }
+
+  notifUnsub = window.onSnapshot(q, (snapshot) => {
+    const items = [];
+    snapshot.forEach((docSnap) => {
+      const d = docSnap.data();
+      const scope = d.scope || (d.committee ? 'committee' : 'global');
+      if(scope === 'global' || d.committee === committeeId){
+        items.push(d);
+      }
+    });
+
+    if(items.length === 0){
+      feed.innerHTML = '<div class="notif-empty">No notifications yet</div>';
+      badge.textContent = '0';
+      return;
+    }
+
+    badge.textContent = items.length;
+    feed.innerHTML = items.map(d => {
+      const scopeLabel = (d.scope === 'committee' || d.committee) ? 'Committee' : 'Global';
+      let timeStr = '';
+      if(d.timestamp && d.timestamp.toDate){
+        timeStr = d.timestamp.toDate().toLocaleString();
+      } else if(d.timestamp){
+        timeStr = String(d.timestamp);
+      }
+      return `
+        <div class="notif-item">
+          <div class="notif-dot-wrap"><div class="notif-dot"></div></div>
+          <div class="notif-content">
+            <div class="notif-scope">${scopeLabel}</div>
+            <div class="notif-title">${d.title || ''}</div>
+            <div class="notif-msg">${d.message || ''}</div>
+            ${timeStr ? `<div class="notif-time">${timeStr}</div>` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+  });
+}
+
+function applyLiveInfo(c){
+  const running = c.running === true;
+  document.getElementById('liveStatus').textContent = running ? 'In Progress' : (conferenceWasRunning ? 'Ended' : 'Not Started');
+  document.getElementById('liveSession').textContent = c.currentSession || c.session || '—';
+  document.getElementById('liveDate').textContent = c.conferenceDate || c.date || '—';
+  document.getElementById('liveVenue').textContent = c.venue || '—';
+
+  function tickTime(){
+    document.getElementById('liveTime').textContent = new Date().toLocaleTimeString();
+  }
+  tickTime();
+  if(!window.__timeTicker){
+    window.__timeTicker = setInterval(tickTime, 1000);
+  }
+}
+
+function setGateState(running){
+  const waiting = document.getElementById('gateWaiting');
+  const ended = document.getElementById('gateEnded');
+  const content = document.getElementById('conferenceContent');
+  const navStatus = document.getElementById('navStatus');
+  const navStatusText = document.getElementById('navStatusText');
+
+  if(running){
+    waiting.classList.add('hidden');
+    ended.classList.add('hidden');
+    content.classList.remove('hidden');
+    navStatus.classList.remove('ended');
+    navStatusText.textContent = 'Live';
+    conferenceWasRunning = true;
+  } else if(conferenceWasRunning){
+    // was running, now stopped → ended state, dashboard stays read-only visible
+    waiting.classList.add('hidden');
+    ended.classList.remove('hidden');
+    content.classList.remove('hidden');
+    navStatus.classList.add('ended');
+    navStatusText.textContent = 'Ended';
+  } else {
+    waiting.classList.remove('hidden');
+    ended.classList.add('hidden');
+    content.classList.add('hidden');
+    navStatus.classList.add('ended');
+    navStatusText.textContent = 'Waiting';
+  }
+}
+
+function init(){
+  delegateId = localStorage.getItem("delegateId");
+
+  if(!delegateId){
+    window.location.href = "index.html";
+    return;
+  }
+
+  // Delegate document realtime listener
+  window.onSnapshot(window.doc(window.db, "delegates", delegateId), (snap) => {
+    if(!snap.exists()){
+      alert("Delegate record not found.");
+      window.location.href = "index.html";
+      return;
+    }
+    const data = snap.data();
+    applyPassData(data, delegateId);
+    applyEntryStatus(data);
+    renderQR(delegateId);
+
+    const committeeId = data.committee || data.committeePreference;
+    if(committeeId && committeeId !== currentCommitteeName){
+      currentCommitteeName = committeeId;
+      loadCommittee(committeeId);
+      loadNotifications(committeeId);
+    } else if(!committeeId){
+      loadNotifications(null);
+    }
+  });
+
+  // Conference status realtime listener
+  window.onSnapshot(window.doc(window.db, "conference", "current"), (snap) => {
+    if(!snap.exists()){
+      setGateState(false);
+      return;
+    }
+    const c = snap.data();
+    const running = c.running === true;
+    setGateState(running);
+    applyLiveInfo(c);
+  });
+}
+
+window.addEventListener("firestore-ready", init, { once: true });
+if(window.firestoreReady) init();
+</script>
+
+</body>
+</html>
